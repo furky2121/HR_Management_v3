@@ -14,6 +14,7 @@ import { PrimeReactContext } from 'primereact/api';
 import { ChildContainerProps, LayoutState, AppTopbarRef } from '@/types';
 import { usePathname, useSearchParams } from 'next/navigation';
 import authService from '../src/services/authService';
+import { Suspense } from 'react';
 
 const Layout = ({ children }: ChildContainerProps) => {
     const { layoutConfig, layoutState, setLayoutState } = useContext(LayoutContext);
@@ -158,7 +159,11 @@ const Layout = ({ children }: ChildContainerProps) => {
                     <AppSidebar />
                 </div>
                 <div className="layout-main-container">
-                    <div className="layout-main">{children}</div>
+                    <div className="layout-main">
+                        <Suspense fallback={<div>Loading...</div>}>
+                            {children}
+                        </Suspense>
+                    </div>
                     <AppFooter />
                 </div>
                 <AppConfig />

@@ -2,10 +2,9 @@
 const nextConfig = {
   output: 'standalone',
   trailingSlash: false,
-  // Disable static generation completely due to useSearchParams issues
-  generateStaticParams: false,
+  // Enable dynamic rendering for all pages
   experimental: {
-    appDir: true
+    // App directory is now stable in Next.js 14
   },
   env: {
     NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api',

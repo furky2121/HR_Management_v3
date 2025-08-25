@@ -5,7 +5,7 @@ import { LayoutProvider } from '../layout/context/layoutcontext';
 import { PrimeReactProvider } from 'primereact/api';
 import { ConfirmDialog } from 'primereact/confirmdialog';
 import { addLocale } from 'primereact/api';
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { usePathname } from 'next/navigation';
 import 'primereact/resources/primereact.css';
 import 'primeflex/primeflex.css';
@@ -48,8 +48,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
             <body>
                 <PrimeReactProvider>
                     <LayoutProvider>
-                        <TitleManager />
-                        {children}
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <TitleManager />
+                            {children}
+                        </Suspense>
                     </LayoutProvider>
                     <ConfirmDialog />
                 </PrimeReactProvider>
