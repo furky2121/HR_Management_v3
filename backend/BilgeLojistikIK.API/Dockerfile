@@ -3,6 +3,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
+EXPOSE 10000
 
 # Create uploads directory
 RUN mkdir -p /app/wwwroot/uploads/avatars && \
