@@ -129,7 +129,7 @@ const PersonelZimmet = () => {
                 }, []);
                 
                 // Sort by label (name)
-                uniquePersonel.sort((a, b) => a.label.localeCompare(b.label, 'tr-TR'));
+                uniquePersonel.sort((a: any, b: any) => a.label.localeCompare(b.label, 'tr-TR'));
                 setPersonelWithZimmetOptions(uniquePersonel);
             }
         } catch (error) {
