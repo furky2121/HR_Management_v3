@@ -776,7 +776,7 @@ const PersonelZimmet = () => {
                                         <div className="field">
                                             <label>Kalan Stok</label>
                                             <InputText 
-                                                value={stokOptions.find(s => s.value === item.zimmetStokId)?.kalanMiktar || '-'}
+                                                value={String(stokOptions.find(s => s.value === item.zimmetStokId)?.kalanMiktar || '-')}
                                                 disabled
                                             />
                                         </div>
