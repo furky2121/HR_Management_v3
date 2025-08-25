@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BilgeLojistikIK.API.Data;
+using BilgeLojistikIK.API.Models;
 
 namespace BilgeLojistikIK.API.Controllers
 {
@@ -20,16 +21,37 @@ namespace BilgeLojistikIK.API.Controllers
         [HttpGet("status")]
         public async Task<IActionResult> GetStatus()
         {
+            bool canConnect = false;
+            var tables = new List<string>();
+            int userCount = 0;
+            string error = "";
+
+            try
+            {
+                // Test database connection
+                canConnect = await _context.Database.CanConnectAsync();
+                
+                if (canConnect)
+                {
+                    // Count users
+                    userCount = await _context.Kullanicilar.CountAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                error = ex.Message;
+            }
+
             var diagnostics = new
             {
                 timestamp = DateTime.UtcNow,
                 environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"),
                 database = new
                 {
-                    canConnect = false,
-                    tables = new List<string>(),
-                    userCount = 0,
-                    error = ""
+                    canConnect = canConnect,
+                    tables = tables,
+                    userCount = userCount,
+                    error = error
                 },
                 jwt = new
                 {
@@ -41,26 +63,6 @@ namespace BilgeLojistikIK.API.Controllers
                               Environment.GetEnvironmentVariable("JwtSettings__Audience")
                 }
             };
-
-            try
-            {
-                // Test database connection
-                diagnostics.database.canConnect = await _context.Database.CanConnectAsync();
-                
-                if (diagnostics.database.canConnect)
-                {
-                    // Get list of tables
-                    var tables = await _context.Database.ExecuteSqlRawAsync(
-                        "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
-                    
-                    // Count users
-                    diagnostics.database.userCount = await _context.Kullanicilar.CountAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                diagnostics.database.error = ex.Message;
-            }
 
             return Ok(diagnostics);
         }
