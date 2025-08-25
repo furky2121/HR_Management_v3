@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: bilgeik-postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME:-BilgeLojistikIKdb}
+      POSTGRES_USER: ${DB_USER:-bilgeik}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-SecurePassword123!}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/BilgeLojistikIK.API/SQL:/docker-entrypoint-initdb.d
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    networks:
+      - bilgeik-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-bilgeik} -d ${DB_NAME:-BilgeLojistikIKdb}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend/BilgeLojistikIK.API
+      dockerfile: Dockerfile
+    container_name: bilgeik-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - DB_HOST=postgres
+      - DB_NAME=${DB_NAME:-BilgeLojistikIKdb}
+      - DB_USER=${DB_USER:-bilgeik}
+      - DB_PASSWORD=${DB_PASSWORD:-SecurePassword123!}
+      - DB_PORT=${DB_PORT:-5432}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-YourSuperSecretJWTKeyHere123456789!}
+      - JWT_ISSUER=${JWT_ISSUER:-BilgeLojistikIK}
+      - JWT_AUDIENCE=${JWT_AUDIENCE:-BilgeLojistikIK-Users}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
+    volumes:
+      - uploads_data:/app/wwwroot/uploads
+    ports:
+      - "${BACKEND_PORT:-5000}:80"
+    networks:
+      - bilgeik-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: bilgeik-frontend
+    depends_on:
+      - backend
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_BASE_URL=${BACKEND_URL:-http://localhost:5000}/api
+      - NEXT_PUBLIC_FILE_BASE_URL=${BACKEND_URL:-http://localhost:5000}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    networks:
+      - bilgeik-network
+    restart: unless-stopped
+
+  # Redis (Opsiyonel - Caching için)
+  redis:
+    image: redis:7-alpine
+    container_name: bilgeik-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - bilgeik-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    profiles:
+      - redis
+
+volumes:
+  postgres_data:
+  uploads_data:
+  redis_data:
+
+networks:
+  bilgeik-network:
+    driver: bridge

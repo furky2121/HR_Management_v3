@@ -1,0 +1,6 @@
+@BilgeLojistikIK.API_HostAddress = http://localhost:5031
+
+GET {{BilgeLojistikIK.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,126 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using BilgeLojistikIK.API.Data;
+using BilgeLojistikIK.API.Services;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            // Navigation property hatalarını filtrele
+            var filteredErrors = context.ModelState
+                .Where(x => !x.Key.Equals("Kademe", StringComparison.OrdinalIgnoreCase) && 
+                           !x.Key.Equals("Departman", StringComparison.OrdinalIgnoreCase) &&
+                           !x.Key.Equals("Pozisyonlar", StringComparison.OrdinalIgnoreCase) &&
+                           !x.Key.Equals("Personeller", StringComparison.OrdinalIgnoreCase))
+                .SelectMany(x => x.Value.Errors.Select(e => e.ErrorMessage))
+                .ToList();
+            
+            var response = new
+            {
+                success = false,
+                message = "Validation hatası",
+                errors = filteredErrors
+            };
+            
+            return new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(response);
+        };
+    });
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// Add Entity Framework
+builder.Services.AddDbContext<BilgeLojistikIKContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
+        o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
+
+// Add Services
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IIzinService, IzinService>();
+
+// Add JWT Authentication
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var secretKey = jwtSettings["SecretKey"];
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtSettings["Issuer"],
+            ValidAudience = jwtSettings["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(secretKey!))
+        };
+    });
+
+// CORS - Production için dinamik origin ayarı
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowedOrigins",
+        corsBuilder =>
+        {
+            var corsSettings = builder.Configuration.GetSection("CorsSettings");
+            var allowedOrigins = corsSettings.GetSection("AllowedOrigins").Get<string[]>() 
+                                ?? new[] { "http://localhost:3000" };
+            
+            corsBuilder.WithOrigins(allowedOrigins)
+                      .AllowAnyHeader()
+                      .AllowAnyMethod()
+                      .AllowCredentials();
+        });
+});
+
+// Static files support for file uploads
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 10 * 1024 * 1024; // 10MB
+});
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+// HTTPS Redirection - Production'da aktif
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+    app.UseHsts(); // HTTP Strict Transport Security
+}
+
+// Static files
+app.UseStaticFiles();
+
+app.UseCors("AllowedOrigins");
+
+// Request logging middleware - Sadece development'da
+if (app.Environment.IsDevelopment())
+{
+    app.Use(async (context, next) =>
+    {
+        Console.WriteLine($"=== REQUEST: {context.Request.Method} {context.Request.Path} ===");
+        await next.Invoke();
+        Console.WriteLine($"=== RESPONSE: {context.Response.StatusCode} ===");
+    });
+}
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();

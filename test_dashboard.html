@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard API Test</title>
+</head>
+<body>
+    <h1>Dashboard API Test</h1>
+    <button onclick="testDashboard()">Test Dashboard API</button>
+    <pre id="result"></pre>
+    
+    <script>
+        async function testDashboard() {
+            try {
+                const response = await fetch('http://localhost:5031/api/Dashboard/Genel', {
+                    headers: {
+                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWhtZXQueWlsbWF6IiwiUGVyc29uZWxJZCI6IjEiLCJLYWRlbWVJZCI6IjEiLCJLYWRlbWVTZXZpeWUiOiIxIiwiZXhwIjoxNzM2NTUzMzM2LCJpc3MiOiJCaWxnZUxvamlzdGlrSUtBUEkiLCJhdWQiOiJCaWxnZUxvamlzdGlrSUtDbGllbnQifQ.vfDlGCBQUNSF6M8H15nJKxGJMcxLONIcRFj0lKdz7Pw'
+                    }
+                });
+                const data = await response.json();
+                document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+                console.log('Dashboard Data:', data);
+            } catch (error) {
+                document.getElementById('result').textContent = 'Error: ' + error.message;
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

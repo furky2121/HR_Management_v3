@@ -1,0 +1,10 @@
+{
+  "personelId": 1,
+  "izinBaslamaTarihi": "2025-08-14T08:00:00.000Z",
+  "isbasiTarihi": "2025-08-15T08:00:00.000Z",
+  "izinBaslamaSaati": "08:00",
+  "isbasiSaati": "08:00",
+  "gunSayisi": 1,
+  "izinTipi": "Yıllık İzin",
+  "aciklama": "Test leave request for debugging"
+}
