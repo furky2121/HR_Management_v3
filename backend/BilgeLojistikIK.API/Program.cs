@@ -136,4 +136,20 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Apply migrations automatically in production
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<BilgeLojistikIKContext>();
+        dbContext.Database.Migrate();
+        Console.WriteLine("Database migrations applied successfully.");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Database migration error: {ex.Message}");
+        // Log but don't fail startup
+    }
+}
+
 app.Run();
