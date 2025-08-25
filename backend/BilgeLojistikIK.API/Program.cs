@@ -69,11 +69,24 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowedOrigins",
         corsBuilder =>
         {
-            var corsSettings = builder.Configuration.GetSection("CorsSettings");
-            var allowedOrigins = corsSettings.GetSection("AllowedOrigins").Get<string[]>() 
-                                ?? new[] { "http://localhost:3000" };
+            var allowedOrigins = new List<string> { 
+                "http://localhost:3000",
+                "http://localhost:3001", 
+                "https://hr-management-murex.vercel.app",
+                "https://hr-management.vercel.app"
+            };
             
-            corsBuilder.WithOrigins(allowedOrigins)
+            // Production ortamında environment variable'dan ekstra origin ekle
+            if (builder.Environment.IsProduction())
+            {
+                var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL");
+                if (!string.IsNullOrEmpty(frontendUrl) && !allowedOrigins.Contains(frontendUrl))
+                {
+                    allowedOrigins.Add(frontendUrl);
+                }
+            }
+            
+            corsBuilder.WithOrigins(allowedOrigins.ToArray())
                       .AllowAnyHeader()
                       .AllowAnyMethod()
                       .AllowCredentials();
