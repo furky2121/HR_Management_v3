@@ -344,7 +344,7 @@ const EgitimKatilimlariPage = () => {
                             <Calendar 
                                 id="katilimTarihi" 
                                 value={katilim.katilimTarihi} 
-                                onChange={(e) => setKatilim({ ...katilim, katilimTarihi: e.value })}
+                                onChange={(e) => setKatilim({ ...katilim, katilimTarihi: e.value || null })}
                                 dateFormat="dd/mm/yy"
                                 showIcon
                             />
@@ -355,7 +355,7 @@ const EgitimKatilimlariPage = () => {
                             <Calendar 
                                 id="tamamlamaTarihi" 
                                 value={katilim.tamamlamaTarihi} 
-                                onChange={(e) => setKatilim({ ...katilim, tamamlamaTarihi: e.value })}
+                                onChange={(e) => setKatilim({ ...katilim, tamamlamaTarihi: e.value || null })}
                                 dateFormat="dd/mm/yy"
                                 showIcon
                             />
