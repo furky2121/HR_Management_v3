@@ -1,0 +1,225 @@
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 1rem;
+}
+
+.login-wrapper {
+    display: flex;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    overflow: hidden;
+    max-width: 1200px;
+    width: 100%;
+    min-height: 700px;
+}
+
+.login-left {
+    flex: 1;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.login-left::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: float 20s infinite ease-in-out;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(10deg); }
+}
+
+.login-branding {
+    text-align: center;
+    z-index: 2;
+    position: relative;
+}
+
+.login-logo i {
+    color: white;
+    opacity: 0.9;
+}
+
+.login-features {
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    color: white;
+    margin-bottom: 1.5rem;
+    opacity: 0.9;
+    font-size: 1.1rem;
+}
+
+.login-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 450px;
+    border: 0 none;
+    box-shadow: none;
+    background: transparent;
+}
+
+.login-card .p-card-content {
+    padding: 0;
+}
+
+.login-header h2 {
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+}
+
+.login-header p {
+    color: #718096;
+    font-size: 1rem;
+}
+
+.field label {
+    color: #2d3748;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.p-inputtext,
+.p-password input {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.875rem;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.p-inputtext:focus,
+.p-password input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.p-button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: 0 none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.p-button:hover {
+    background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.p-checkbox .p-checkbox-box {
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+}
+
+.p-checkbox .p-checkbox-box.p-highlight {
+    background: #667eea;
+    border-color: #667eea;
+}
+
+.demo-credentials {
+    margin-top: 1rem;
+}
+
+.demo-credential-item {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    transition: all 0.2s;
+}
+
+.demo-credential-item:hover {
+    border-color: #667eea;
+    transform: translateX(2px);
+}
+
+.p-divider {
+    margin: 1.5rem 0;
+}
+
+.p-divider .p-divider-content {
+    background: white;
+    color: #718096;
+    padding: 0 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .login-wrapper {
+        flex-direction: column;
+        min-height: 100vh;
+        border-radius: 0;
+    }
+    
+    .login-left {
+        min-height: 300px;
+        padding: 2rem 1rem;
+    }
+    
+    .login-left h1 {
+        font-size: 2.5rem;
+    }
+    
+    .login-features {
+        display: none;
+    }
+    
+    .login-right {
+        padding: 2rem 1rem;
+    }
+    
+    .feature-item {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-container {
+        padding: 0;
+    }
+    
+    .login-left h1 {
+        font-size: 2rem;
+    }
+    
+    .login-left p {
+        font-size: 1rem;
+    }
+    
+    .login-left {
+        padding: 1.5rem 1rem;
+    }
+    
+    .login-right {
+        padding: 1.5rem 1rem;
+    }
+}

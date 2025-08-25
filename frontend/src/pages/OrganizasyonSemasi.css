@@ -1,0 +1,718 @@
+/* Organizasyon Şeması Container */
+.organizasyon-semasi-container {
+    padding: 1rem;
+    background: #f8fafc;
+    min-height: calc(100vh - 120px);
+}
+
+/* Organizasyon Chart Container */
+.org-chart-container {
+    padding: 2rem;
+    background: #ffffff;
+    border-radius: 12px;
+    overflow-x: auto;
+    min-height: 400px;
+}
+
+/* Organization Chart Styling */
+.company-org-chart .p-organizationchart-table {
+    margin: 0 auto;
+}
+
+/* Collapse/Expand Control - Tüm alt node'ları gizle */
+.chart-collapsed .p-organizationchart-nodes[style*="visibility: hidden"] {
+    display: none !important;
+}
+
+.chart-collapsed .p-organizationchart-lines[style*="visibility: hidden"] {
+    display: none !important;
+}
+
+/* Expanded durumunda tüm node'ları göster */
+.company-org-chart:not(.chart-collapsed) .p-organizationchart-nodes,
+.company-org-chart:not(.chart-collapsed) .p-organizationchart-lines {
+    visibility: visible !important;
+}
+
+/* Alt personeli olmayan (leaf) node'ların altındaki gereksiz çizgileri gizle */
+.company-org-chart .p-organizationchart-lines:last-child {
+    display: none !important;
+}
+
+/* Boş node container'larını gizle */
+.company-org-chart .p-organizationchart-nodes:empty {
+    display: none !important;
+}
+
+/* Boş node'lardan sonraki çizgileri gizle */
+.company-org-chart .p-organizationchart-nodes:empty + .p-organizationchart-lines {
+    display: none !important;
+}
+
+.company-org-chart .p-organizationchart-node-content {
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+}
+
+.company-org-chart .p-organizationchart-line-down,
+.company-org-chart .p-organizationchart-line-left,
+.company-org-chart .p-organizationchart-line-right,
+.company-org-chart .p-organizationchart-line-top {
+    border-color: #e2e8f0;
+    border-width: 2px;
+}
+
+/* Org Node Styling */
+.org-node {
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 0.75rem;
+    width: 240px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.org-node:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border-color: #3b82f6;
+    cursor: pointer;
+}
+
+.org-node-content {
+    text-align: center;
+    position: relative;
+}
+
+/* Avatar Container */
+.org-avatar-container {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 0.75rem;
+}
+
+.org-avatar {
+    width: 70px !important;
+    height: 70px !important;
+    border: 4px solid #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.org-level-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 12px !important;
+    font-weight: 700;
+    border: 3px solid #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Node Info */
+.org-node-info {
+    text-align: center;
+}
+
+.org-node-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+    line-height: 1.2;
+}
+
+.org-node-position {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #4b5563;
+    margin-bottom: 0.25rem;
+    line-height: 1.2;
+}
+
+.org-node-department {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+}
+
+.org-node-level {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.5rem;
+}
+
+.org-kademe-badge {
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    padding: 0.25rem 0.5rem !important;
+    border-radius: 6px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 1.5rem !important;
+}
+
+/* Node Contact Info */
+.org-node-contact {
+    font-size: 0.6rem;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    background: rgba(0, 0, 0, 0.03);
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Enhanced Visual Effects */
+.org-node::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(135deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+    border-radius: 22px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+}
+
+.org-node:hover::before {
+    opacity: 1;
+}
+
+/* Modern Glassmorphism Effect */
+.org-chart-container {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.org-node {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+/* Organization Chart Legend */
+.org-chart-legend {
+    position: absolute;
+    top: 0.5rem;
+    left: 1rem;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 0.75rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    z-index: 1000;
+    max-width: 160px;
+}
+
+.org-chart-legend h6 {
+    margin-bottom: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.org-chart-legend .flex {
+    gap: 0.25rem;
+}
+
+.org-chart-legend .text-xs {
+    font-size: 0.625rem;
+    color: #6b7280;
+    line-height: 1.2;
+}
+
+.org-chart-legend .w-1rem {
+    width: 0.75rem !important;
+    height: 0.75rem !important;
+}
+
+.org-chart-legend .mb-1 {
+    margin-bottom: 0.25rem !important;
+}
+
+/* Enhanced Statistics Cards */
+.organizasyon-semasi-container .p-card.border-left-3 {
+    position: relative;
+    overflow: hidden;
+}
+
+.organizasyon-semasi-container .p-card.border-left-3::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(to bottom, var(--border-color), transparent);
+}
+
+.organizasyon-semasi-container .p-card.border-primary::before {
+    background: linear-gradient(to bottom, #3b82f6, #1e40af);
+}
+
+.organizasyon-semasi-container .p-card.border-green-500::before {
+    background: linear-gradient(to bottom, #10b981, #059669);
+}
+
+.organizasyon-semasi-container .p-card.border-orange-500::before {
+    background: linear-gradient(to bottom, #f59e0b, #d97706);
+}
+
+.organizasyon-semasi-container .p-card.border-purple-500::before {
+    background: linear-gradient(to bottom, #3b82f6, #1e40af);
+}
+
+/* Kademe Dağılımı */
+.kademe-dagilimi {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 40px;
+}
+
+.kademe-dagilimi .p-chip {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+/* DataTable cell height consistency */
+.organizasyon-semasi-container .p-datatable .p-datatable-tbody > tr > td {
+    padding: 1rem;
+    border-color: #e2e8f0;
+    vertical-align: middle;
+    min-height: 60px;
+}
+
+/* Toplam Personel Badge alignment */
+.organizasyon-semasi-container .p-badge.text-base {
+    font-size: 0.875rem;
+    padding: 0.375rem 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 50px;
+    min-height: 30px;
+}
+
+/* Equal height for data cells */
+.organizasyon-semasi-container .p-datatable .p-datatable-tbody > tr > td .flex {
+    min-height: 40px;
+    align-items: center;
+}
+
+/* Tab Styling */
+.organizasyon-semasi-container .p-tabview .p-tabview-nav {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px 12px 0 0;
+    padding: 0.5rem;
+}
+
+.organizasyon-semasi-container .p-tabview .p-tabview-nav li .p-tabview-nav-link {
+    background: transparent;
+    border: 0;
+    color: #64748b;
+    font-weight: 600;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    margin: 0 0.25rem;
+    transition: all 0.3s ease;
+}
+
+.organizasyon-semasi-container .p-tabview .p-tabview-nav li.p-highlight .p-tabview-nav-link {
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.organizasyon-semasi-container .p-tabview .p-tabview-panels {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-top: 0;
+    border-radius: 0 0 12px 12px;
+    padding: 1.5rem;
+}
+
+/* Card Styling */
+.organizasyon-semasi-container .p-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.organizasyon-semasi-container .p-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* DataTable Styling */
+.organizasyon-semasi-container .p-datatable {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.organizasyon-semasi-container .p-datatable .p-datatable-thead > tr > th {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    font-weight: 600;
+    color: #374151;
+    padding: 1rem;
+}
+
+.organizasyon-semasi-container .p-datatable .p-datatable-tbody > tr > td {
+    padding: 1rem;
+    border-color: #e2e8f0;
+}
+
+.organizasyon-semasi-container .p-datatable .p-datatable-tbody > tr:hover {
+    background: #f8fafc;
+}
+
+/* Badge Styling */
+.organizasyon-semasi-container .p-badge {
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 0.25rem 0.5rem;
+}
+
+.organizasyon-semasi-container .p-badge.text-base {
+    font-size: 0.875rem;
+    padding: 0.375rem 0.75rem;
+}
+
+/* Enhanced Dialog Styling */
+.organizasyon-semasi-container .p-dialog {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.organizasyon-semasi-container .p-dialog .p-dialog-header {
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+    color: white;
+    border-radius: 16px 16px 0 0;
+    padding: 2rem;
+    border-bottom: none;
+}
+
+.organizasyon-semasi-container .p-dialog .p-dialog-content {
+    padding: 2rem;
+    border-radius: 0 0 16px 16px;
+    background: linear-gradient(135deg, #fefefe 0%, #f8fafc 100%);
+}
+
+/* Enhanced Profile Section */
+.personel-detail-profile {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(30, 64, 175, 0.02) 100%);
+    border: 1px solid rgba(59, 130, 246, 0.1);
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.personel-detail-profile::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, transparent 0%, rgba(59, 130, 246, 0.03) 100%);
+    pointer-events: none;
+}
+
+.personel-detail-avatar {
+    position: relative;
+    z-index: 1;
+}
+
+.personel-detail-info {
+    position: relative;
+    z-index: 1;
+}
+
+/* Enhanced Info Cards */
+.personel-info-card {
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 12px;
+    padding: 1rem;
+    height: 100%;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+}
+
+.personel-info-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #1e40af);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.personel-info-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    border-color: rgba(59, 130, 246, 0.2);
+}
+
+.personel-info-card:hover::before {
+    opacity: 1;
+}
+
+.personel-info-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.75rem;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.personel-info-icon::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    right: 2px;
+    bottom: 2px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.8);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.personel-info-card:hover .personel-info-icon::before {
+    opacity: 1;
+}
+
+/* Manager Section */
+.manager-section {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(59, 130, 246, 0.02) 100%);
+    border: 1px solid rgba(99, 102, 241, 0.1);
+    border-radius: 16px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.manager-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, transparent 0%, rgba(99, 102, 241, 0.03) 100%);
+    pointer-events: none;
+}
+
+/* Toolbar Styling */
+.organizasyon-semasi-container .p-toolbar {
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 960px) {
+    .organizasyon-semasi-container {
+        padding: 0.5rem;
+    }
+    
+    .org-chart-container {
+        padding: 1rem;
+        overflow-x: scroll;
+    }
+    
+    .org-node {
+        width: 240px;
+        padding: 0.75rem;
+    }
+    
+    .org-avatar {
+        width: 60px !important;
+        height: 60px !important;
+    }
+    
+    .org-level-badge {
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 10px !important;
+    }
+    
+    .org-node-name {
+        font-size: 0.875rem;
+    }
+    
+    .org-node-position {
+        font-size: 0.75rem;
+    }
+    
+    .org-node-department {
+        font-size: 0.625rem;
+    }
+}
+
+@media screen and (max-width: 576px) {
+    .org-node {
+        width: 200px;
+        padding: 0.5rem;
+    }
+    
+    .org-avatar {
+        width: 50px !important;
+        height: 50px !important;
+    }
+    
+    .org-level-badge {
+        width: 20px !important;
+        height: 20px !important;
+        font-size: 8px !important;
+        top: -6px;
+        right: -6px;
+    }
+    
+    .org-node-name {
+        font-size: 0.75rem;
+    }
+    
+    .org-node-position {
+        font-size: 0.625rem;
+    }
+    
+    .org-node-department {
+        font-size: 0.5rem;
+    }
+    
+    .kademe-dagilimi .p-chip {
+        font-size: 0.625rem;
+        padding: 0.125rem 0.375rem;
+    }
+    
+    .organizasyon-semasi-container .p-tabview .p-tabview-nav li .p-tabview-nav-link {
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .organizasyon-semasi-container {
+        padding: 0;
+        background: white;
+    }
+    
+    .p-toolbar,
+    .p-tabview-nav,
+    .p-dialog,
+    .p-paginator {
+        display: none !important;
+    }
+    
+    .org-chart-container {
+        padding: 1rem;
+        page-break-inside: avoid;
+    }
+    
+    .org-node {
+        break-inside: avoid;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+}
+
+/* Loading and Error States */
+.organizasyon-semasi-container .p-progressspinner {
+    width: 50px;
+    height: 50px;
+}
+
+.organizasyon-semasi-container .p-progressspinner .p-progressspinner-svg {
+    width: 50px;
+    height: 50px;
+}
+
+/* Accessibility */
+.org-node:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+.org-node-content:focus {
+    outline: none;
+}
+
+/* Animation for node hover */
+@keyframes nodeHover {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.org-node:hover {
+    animation: nodeHover 0.3s ease-in-out;
+}
+
+/* Pan/Drag cursor styles */
+.org-chart-container {
+    cursor: grab;
+    user-select: none;
+}
+
+.org-chart-container:active {
+    cursor: grabbing;
+}
+
+.org-chart-container.panning {
+    cursor: grabbing;
+}
+
+/* Prevent text selection during panning */
+.org-chart-container.panning * {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+

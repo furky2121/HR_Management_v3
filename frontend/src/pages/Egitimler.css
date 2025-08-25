@@ -1,0 +1,126 @@
+.egitimler-container {
+    padding: 1rem;
+}
+
+.egitimler-container .card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 1px -1px rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14), 0 1px 3px 0 rgba(0,0,0,.12);
+    border: 0 none;
+    margin-bottom: 1rem;
+}
+
+.datatable-responsive .p-datatable-wrapper {
+    overflow-x: auto;
+}
+
+.datatable-responsive .p-datatable .p-datatable-thead > tr > th,
+.datatable-responsive .p-datatable .p-datatable-tbody > tr > td {
+    min-width: 10rem;
+}
+
+.egitimler-container .p-dialog .p-dialog-header {
+    background: var(--primary-color);
+    color: var(--primary-color-text);
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.egitimler-container .p-dialog .p-dialog-content {
+    padding: 1.5rem;
+}
+
+.egitimler-container .p-multiselect-chip {
+    background: var(--primary-color);
+    color: var(--primary-color-text);
+}
+
+.egitimler-container .p-rating .p-rating-icon.p-rating-icon-active {
+    color: #ffc107;
+}
+
+.egitimler-container .p-card .p-card-content {
+    padding: 1rem;
+}
+
+.egitimler-container .p-progressbar {
+    height: 0.5rem;
+    background-color: #e9ecef;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.egitimler-container .p-progressbar .p-progressbar-value {
+    border-radius: 0;
+    background: linear-gradient(90deg, var(--primary-color) 0%, var(--primary-color-dark) 100%);
+}
+
+.egitimler-container .p-tabview .p-tabview-panels {
+    background: transparent;
+    border: 0 none;
+    padding: 0;
+}
+
+.egitimler-container .p-tabview .p-tabview-nav {
+    background: transparent;
+    border: 0 none;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.egitimler-container .p-tabview .p-tabview-nav li .p-tabview-nav-link {
+    background: transparent;
+    border: 0 none;
+    color: #6c757d;
+    font-weight: 600;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.egitimler-container .p-tabview .p-tabview-nav li .p-tabview-nav-link:focus {
+    box-shadow: none;
+}
+
+.egitimler-container .p-tabview .p-tabview-nav li.p-highlight .p-tabview-nav-link {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+.egitimler-container .p-datatable .p-datatable-tbody > tr.p-datatable-row-expansion {
+    background: #f8f9fa;
+}
+
+.egitimler-container .p-datatable .p-row-toggler {
+    color: var(--primary-color);
+}
+
+.egitimler-container .p-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    line-height: 1.5rem;
+}
+
+@media screen and (max-width: 960px) {
+    .datatable-responsive .p-datatable .p-datatable-thead > tr > th,
+    .datatable-responsive .p-datatable .p-datatable-tbody > tr > td {
+        min-width: 8rem;
+    }
+    
+    .egitimler-container .p-dialog {
+        width: 95vw !important;
+        margin: 0 auto;
+    }
+}
+
+@media screen and (max-width: 576px) {
+    .egitimler-container {
+        padding: 0.5rem;
+    }
+    
+    .datatable-responsive .p-datatable .p-datatable-thead > tr > th,
+    .datatable-responsive .p-datatable .p-datatable-tbody > tr > td {
+        min-width: 6rem;
+        font-size: 0.875rem;
+    }
+}

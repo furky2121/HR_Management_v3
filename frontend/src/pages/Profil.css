@@ -1,0 +1,602 @@
+.profil-container {
+    padding: 1rem;
+    background: #f8fafc;
+    min-height: calc(100vh - 120px);
+}
+
+/* Modern gradient background */
+.profil-container .surface-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.profil-container .surface-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Modern header styling */
+.profil-container .text-4xl {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Knob component styling */
+.profil-container .p-knob-text {
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+/* Modern card styling */
+.modern-stat-card {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.modern-stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-color: #cbd5e1;
+}
+
+/* Tab styling improvements */
+.modern-tabview .p-tabview-nav {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px 12px 0 0;
+    padding: 0.5rem;
+}
+
+.modern-tabview .p-tabview-nav li .p-tabview-nav-link {
+    background: transparent;
+    border: 0;
+    color: #64748b;
+    font-weight: 600;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    margin: 0 0.25rem;
+    transition: all 0.3s ease;
+}
+
+.modern-tabview .p-tabview-nav li.p-highlight .p-tabview-nav-link {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.modern-tabview .p-tabview-panels {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-top: 0;
+    border-radius: 0 0 12px 12px;
+}
+
+.profil-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    border: 0 none;
+}
+
+.profil-card .p-card-content {
+    padding: 0;
+}
+
+.profil-header {
+    padding: 2rem;
+}
+
+.profil-avatar-container {
+    position: relative;
+    display: inline-block;
+}
+
+.profil-avatar {
+    width: 120px !important;
+    height: 120px !important;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.profil-camera-btn {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: white;
+    color: #667eea;
+    border: 2px solid white;
+    width: 35px;
+    height: 35px;
+}
+
+.profil-camera-btn:hover {
+    background: #f8f9fa;
+    transform: scale(1.1);
+}
+
+.profil-details {
+    text-align: left;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
+}
+
+.profil-details .flex {
+    align-items: center;
+}
+
+.profil-details i {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    border: 0 none;
+    transition: all 0.3s ease;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.stat-card .p-card-content {
+    padding: 1rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.izin-ozet {
+    padding: 1rem;
+}
+
+.profil-container .p-tabview .p-tabview-panels {
+    background: transparent;
+    border: 0 none;
+    padding: 0;
+}
+
+.profil-container .p-tabview .p-tabview-nav {
+    background: white;
+    border: 0 none;
+    border-radius: 12px 12px 0 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.profil-container .p-tabview .p-tabview-nav li {
+    margin-right: 0.5rem;
+}
+
+.profil-container .p-tabview .p-tabview-nav li .p-tabview-nav-link {
+    background: transparent;
+    border: 0 none;
+    color: #6c757d;
+    font-weight: 600;
+    padding: 1rem 1.5rem;
+    border-radius: 12px 12px 0 0;
+    transition: all 0.3s ease;
+}
+
+.profil-container .p-tabview .p-tabview-nav li .p-tabview-nav-link:focus {
+    box-shadow: none;
+}
+
+.profil-container .p-tabview .p-tabview-nav li.p-highlight .p-tabview-nav-link {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.profil-container .p-card {
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border: 0 none;
+    margin-bottom: 1rem;
+}
+
+.profil-container .p-card .p-card-content {
+    padding: 1.5rem;
+}
+
+.profil-container .p-panel .p-panel-header {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px 8px 0 0;
+    color: #495057;
+    font-weight: 600;
+}
+
+.profil-container .p-panel .p-panel-content {
+    border: 1px solid #dee2e6;
+    border-top: 0 none;
+    border-radius: 0 0 8px 8px;
+}
+
+.profil-container .p-progressbar {
+    height: 8px;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.profil-container .p-progressbar .p-progressbar-value {
+    background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+    border-radius: 0;
+}
+
+.profil-container .p-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+}
+
+.profil-container .p-rating .p-rating-icon.p-rating-icon-active {
+    color: #fbbf24;
+}
+
+.profil-container .p-dialog .p-dialog-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px 12px 0 0;
+}
+
+.profil-container .p-dialog .p-dialog-content {
+    padding: 1.5rem;
+    border-radius: 0 0 12px 12px;
+}
+
+.profil-container .p-fileupload .p-fileupload-choose {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: 0 none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+}
+
+.profil-container .p-fileupload .p-fileupload-choose:hover {
+    background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+}
+
+.profil-container .p-password input {
+    width: 100%;
+}
+
+.profil-container .p-inputtext,
+.profil-container .p-inputtextarea {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    padding: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.profil-container .p-inputtext:focus,
+.profil-container .p-inputtextarea:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.profil-container label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+/* Modern color palette */
+.profil-container .text-blue-500 {
+    color: #3b82f6 !important;
+}
+
+.profil-container .text-blue-600 {
+    color: #2563eb !important;
+}
+
+.profil-container .text-blue-700 {
+    color: #1d4ed8 !important;
+}
+
+.profil-container .text-green-500 {
+    color: #22c55e !important;
+}
+
+.profil-container .text-green-600 {
+    color: #16a34a !important;
+}
+
+.profil-container .text-green-700 {
+    color: #15803d !important;
+}
+
+.profil-container .text-orange-500 {
+    color: #f97316 !important;
+}
+
+.profil-container .text-orange-600 {
+    color: #ea580c !important;
+}
+
+.profil-container .text-orange-700 {
+    color: #c2410c !important;
+}
+
+.profil-container .text-purple-500 {
+    color: #8b5cf6 !important;
+}
+
+.profil-container .text-purple-600 {
+    color: #7c3aed !important;
+}
+
+.profil-container .text-purple-700 {
+    color: #6d28d9 !important;
+}
+
+.profil-container .text-yellow-400 {
+    color: #facc15 !important;
+}
+
+.profil-container .text-yellow-500 {
+    color: #eab308 !important;
+}
+
+.profil-container .text-600 {
+    color: #6b7280 !important;
+}
+
+.profil-container .text-900 {
+    color: #111827 !important;
+}
+
+.profil-container .text-primary {
+    color: #667eea !important;
+}
+
+/* Background utilities */
+.profil-container .bg-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white;
+}
+
+.profil-container .bg-blue-50 {
+    background-color: #eff6ff !important;
+}
+
+.profil-container .bg-green-50 {
+    background-color: #f0fdf4 !important;
+}
+
+.profil-container .bg-orange-50 {
+    background-color: #fff7ed !important;
+}
+
+.profil-container .bg-purple-50 {
+    background-color: #faf5ff !important;
+}
+
+.profil-container .bg-yellow-50 {
+    background-color: #fefce8 !important;
+}
+
+.profil-container .bg-gray-50 {
+    background-color: #f9fafb !important;
+}
+
+.profil-container .bg-gradient-to-r {
+    background: linear-gradient(to right, var(--tw-gradient-stops));
+}
+
+.profil-container .from-blue-50 {
+    --tw-gradient-from: #eff6ff;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgb(239 246 255 / 0));
+}
+
+.profil-container .to-indigo-50 {
+    --tw-gradient-to: #eef2ff;
+}
+
+.profil-container .from-indigo-50 {
+    --tw-gradient-from: #eef2ff;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgb(238 242 255 / 0));
+}
+
+.profil-container .to-purple-50 {
+    --tw-gradient-to: #faf5ff;
+}
+
+/* Card hover effects */
+.profil-container .p-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+/* Divider styling */
+.profil-container .p-divider {
+    margin: 1.5rem 0;
+}
+
+.profil-container .p-divider .p-divider-content {
+    background: transparent;
+}
+
+/* Badge styling */
+.profil-container .p-badge.p-badge-success {
+    background: #22c55e;
+}
+
+.profil-container .p-badge.p-badge-info {
+    background: #3b82f6;
+}
+
+.profil-container .p-badge.p-badge-warning {
+    background: #f97316;
+}
+
+/* Skeleton loading */
+.profil-container .p-skeleton {
+    border-radius: 8px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Enhanced border radius */
+.profil-container .border-round {
+    border-radius: 8px;
+}
+
+.profil-container .border-round-lg {
+    border-radius: 12px;
+}
+
+.profil-container .border-round-xl {
+    border-radius: 16px;
+}
+
+/* Shadow utilities */
+.profil-container .shadow-1 {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.profil-container .shadow-2 {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.profil-container .shadow-3 {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Modern button styling */
+.profil-container .p-button-outlined {
+    background: transparent;
+    border: 2px solid #667eea;
+    color: #667eea;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.profil-container .p-button-outlined:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.profil-container .p-button-lg {
+    padding: 0.875rem 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 8px;
+}
+
+/* Information message styling */
+.profil-container .p-message {
+    border-radius: 8px;
+    border: 1px solid;
+    padding: 1rem;
+}
+
+.profil-container .p-message.p-message-error {
+    background-color: #fef2f2;
+    border-color: #fecaca;
+    color: #b91c1c;
+}
+
+/* Mobile responsiveness */
+@media screen and (max-width: 960px) {
+    .profil-container {
+        padding: 0.5rem;
+    }
+    
+    .profil-container .text-4xl {
+        font-size: 2rem !important;
+    }
+    
+    .profil-container .p-button-lg {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .modern-tabview .p-tabview-nav li .p-tabview-nav-link {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .modern-stat-card {
+        padding: 1rem;
+    }
+}
+
+@media screen and (max-width: 576px) {
+    .profil-container .text-4xl {
+        font-size: 1.75rem !important;
+    }
+    
+    .profil-container .text-2xl {
+        font-size: 1.5rem !important;
+    }
+    
+    .profil-container .p-dialog {
+        width: 95vw !important;
+        margin: 0 auto;
+    }
+    
+    .profil-container .grid > .col-6 {
+        width: 100%;
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    
+    .modern-stat-card {
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    
+    .profil-container .flex.gap-2 {
+        flex-direction: column;
+        gap: 0.5rem !important;
+    }
+    
+    .profil-container .flex.gap-3 {
+        flex-direction: column;
+        gap: 0.5rem !important;
+    }
+    
+    .modern-tabview .p-tabview-nav {
+        padding: 0.25rem;
+    }
+    
+    .modern-tabview .p-tabview-nav li .p-tabview-nav-link {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+        margin: 0 0.125rem;
+    }
+}
