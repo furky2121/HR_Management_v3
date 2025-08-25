@@ -67,91 +67,15 @@ namespace BilgeLojistikIK.API.Controllers
             return Ok(diagnostics);
         }
 
-        [HttpPost("seed")]
-        public async Task<IActionResult> SeedTestData()
+        [HttpGet("simple")]
+        public IActionResult GetSimpleStatus()
         {
-            try
-            {
-                // Check if data already exists
-                if (await _context.Kullanicilar.AnyAsync())
-                {
-                    return Ok(new { message = "Database already has data" });
-                }
-
-                // Create test kademe
-                var kademe = new Kademe
-                {
-                    Ad = "Genel Müdür",
-                    Seviye = 1,
-                    Aktif = true
-                };
-                _context.Kademeler.Add(kademe);
-                await _context.SaveChangesAsync();
-
-                // Create test departman
-                var departman = new Departman
-                {
-                    Ad = "Bilgi İşlem",
-                    Kod = "IT",
-                    Aktif = true
-                };
-                _context.Departmanlar.Add(departman);
-                await _context.SaveChangesAsync();
-
-                // Create test pozisyon
-                var pozisyon = new Pozisyon
-                {
-                    Ad = "IT Müdürü",
-                    Kod = "IT001",
-                    DepartmanId = departman.Id,
-                    KademeId = kademe.Id,
-                    Aktif = true
-                };
-                _context.Pozisyonlar.Add(pozisyon);
-                await _context.SaveChangesAsync();
-
-                // Create test personel
-                var personel = new Personel
-                {
-                    Ad = "Test",
-                    Soyad = "Kullanıcı",
-                    TcKimlikNo = "12345678901",
-                    SicilNo = "TEST001",
-                    Email = "test@bilgelojistik.com",
-                    Telefon = "5551234567",
-                    DogumTarihi = new DateTime(1990, 1, 1),
-                    IseGirisTarihi = DateTime.Now,
-                    PozisyonId = pozisyon.Id,
-                    Cinsiyet = "E",
-                    MedeniDurum = "Bekar",
-                    Aktif = true
-                };
-                _context.Personeller.Add(personel);
-                await _context.SaveChangesAsync();
-
-                // Create test user with password "test123"
-                var kullanici = new Kullanici
-                {
-                    KullaniciAdi = "test",
-                    Sifre = "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3", // SHA256 of "123"
-                    Email = "test@bilgelojistik.com",
-                    PersonelId = personel.Id,
-                    Aktif = true,
-                    IlkGiris = false,
-                    SonGirisTarihi = DateTime.Now
-                };
-                _context.Kullanicilar.Add(kullanici);
-                await _context.SaveChangesAsync();
-
-                return Ok(new { 
-                    message = "Test data created successfully",
-                    credentials = new { username = "test", password = "123" }
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = ex.Message, innerError = ex.InnerException?.Message });
-            }
+            return Ok(new { 
+                status = "API is running",
+                timestamp = DateTime.UtcNow,
+                environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"),
+                connectionString = _configuration.GetConnectionString("DefaultConnection")?.Substring(0, 50) + "..."
+            });
         }
     }
 }
