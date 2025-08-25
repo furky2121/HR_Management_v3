@@ -81,7 +81,7 @@ const EgitimKatilimlariPage = () => {
 
     const loadPersoneller = async () => {
         try {
-            const response = await personelService.getPersoneller();
+            const response = await personelService.getAllPersoneller();
             if (response.data.success) {
                 setPersoneller(response.data.data.map((p: any) => ({
                     label: `${p.ad} ${p.soyad}`,

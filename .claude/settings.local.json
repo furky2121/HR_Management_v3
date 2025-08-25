@@ -49,7 +49,10 @@
       "Bash(cp:*)",
       "Bash(del \"app\\(main)\\zimmet\\page.tsx\")",
       "Bash(del \"C:\\Users\\480s\\Desktop\\Claude\\Bilge_IK_Yonetim_v1_ÇALIŞAN_YEDEK_vFinal\\frontend\\app\\(main)\\zimmet\\page.tsx\")",
-      "Bash(del:*)"
+      "Bash(del:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ],
     "deny": []
   }
