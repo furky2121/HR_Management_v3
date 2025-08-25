@@ -61,10 +61,10 @@ const ZimmetFormu = () => {
     const toast = useRef<Toast>(null);
 
     useEffect(() => {
-        if (params.id) {
+        if (params?.id) {
             loadZimmetFormu(Number(params.id));
         }
-    }, [params.id]);
+    }, [params?.id]);
 
     const loadZimmetFormu = async (id: number) => {
         try {
