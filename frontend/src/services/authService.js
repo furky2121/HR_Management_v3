@@ -40,32 +40,44 @@ class AuthService {
 
     // Token yönetimi
     setToken(token) {
-        localStorage.setItem('token', token);
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('token', token);
+        }
     }
 
     getToken() {
-        return localStorage.getItem('token');
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('token');
+        }
+        return null;
     }
 
     removeToken() {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+        }
     }
 
     // Kullanıcı bilgileri
     setUser(user) {
-        localStorage.setItem('user', JSON.stringify(user));
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('user', JSON.stringify(user));
+        }
     }
 
     getUser() {
-        const user = localStorage.getItem('user');
-        const parsedUser = user ? JSON.parse(user) : null;
-        console.log('AuthService - getUser returning:', parsedUser);
-        if (parsedUser) {
-            console.log('AuthService - User has personel?', !!parsedUser.personel);
-            console.log('AuthService - personel fotografUrl:', parsedUser.personel?.fotografUrl);
+        if (typeof window !== 'undefined') {
+            const user = localStorage.getItem('user');
+            const parsedUser = user ? JSON.parse(user) : null;
+            console.log('AuthService - getUser returning:', parsedUser);
+            if (parsedUser) {
+                console.log('AuthService - User has personel?', !!parsedUser.personel);
+                console.log('AuthService - personel fotografUrl:', parsedUser.personel?.fotografUrl);
+            }
+            return parsedUser;
         }
-        return parsedUser;
+        return null;
     }
 
     // Login durumu kontrolü

@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  trailingSlash: false,
+  // Disable static generation completely due to useSearchParams issues
+  generateStaticParams: false,
   experimental: {
     appDir: true
   },
