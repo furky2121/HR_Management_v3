@@ -5,6 +5,8 @@ const nextConfig = {
   experimental: {
     // App directory is now stable in Next.js 14
   },
+  // Skip trace file operations to prevent ENOENT errors
+  outputFileTracing: false,
   env: {
     NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || 'https://bilgelojistik-api.onrender.com/api',
     NEXT_PUBLIC_FILE_BASE_URL: process.env.NEXT_PUBLIC_FILE_BASE_URL || 'https://bilgelojistik-api.onrender.com',
