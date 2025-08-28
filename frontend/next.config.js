@@ -7,8 +7,8 @@ const nextConfig = {
     // App directory is now stable in Next.js 14
   },
   env: {
-    NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api',
-    NEXT_PUBLIC_FILE_BASE_URL: process.env.NEXT_PUBLIC_FILE_BASE_URL || 'http://localhost:5000',
+    NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || 'https://bilgelojistik-api.onrender.com/api',
+    NEXT_PUBLIC_FILE_BASE_URL: process.env.NEXT_PUBLIC_FILE_BASE_URL || 'https://bilgelojistik-api.onrender.com',
   },
   // Security headers for production
   async headers() {
@@ -40,7 +40,7 @@ const nextConfig = {
   images: {
     domains: [
       'localhost',
-      // Production domain'i buraya eklenecek
+      'bilgelojistik-api.onrender.com'
     ],
     formats: ['image/webp', 'image/avif'],
   },
