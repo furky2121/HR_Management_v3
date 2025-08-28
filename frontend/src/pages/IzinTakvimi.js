@@ -158,7 +158,10 @@ const IzinTakvimi = () => {
         while (weeks.length < 6) { // 6 hafta göster
             const week = [];
             for (let i = 0; i < 7; i++) {
-                const dayEvents = izinler.filter(event => {
+                // Hafta sonu günlerinde (Cumartesi=5, Pazar=6) izin verilerini gösterme
+                const isWeekend = (i === 5 || i === 6); // Cumartesi veya Pazar
+                
+                const dayEvents = isWeekend ? [] : izinler.filter(event => {
                     const eventStart = parseDate(event.start);
                     const eventEnd = parseDate(event.end);
                     
@@ -185,17 +188,19 @@ const IzinTakvimi = () => {
         return (
             <div className="calendar-view">
                 <div className="calendar-header">
-                    {['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'].map(day => (
-                        <div key={day} className="calendar-day-header">{day}</div>
+                    {['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'].map((day, index) => (
+                        <div key={day} className={`calendar-day-header ${(index === 5 || index === 6) ? 'weekend-header' : ''}`}>{day}</div>
                     ))}
                 </div>
                 <div className="calendar-body">
                     {weeks.map((week, weekIndex) => (
                         <div key={weekIndex} className="calendar-week">
-                            {week.map((day, dayIndex) => (
+                            {week.map((day, dayIndex) => {
+                                const isWeekend = (dayIndex === 5 || dayIndex === 6); // Cumartesi veya Pazar
+                                return (
                                 <div 
                                     key={dayIndex} 
-                                    className={`calendar-day ${!day.isCurrentMonth ? 'other-month' : ''} ${day.events.length > 0 ? 'has-events' : ''}`}
+                                    className={`calendar-day ${!day.isCurrentMonth ? 'other-month' : ''} ${day.events.length > 0 ? 'has-events' : ''} ${isWeekend ? 'weekend' : ''}`}
                                 >
                                     <div className="day-number">{day.date.getDate()}</div>
                                     <div className="day-events">
@@ -217,7 +222,8 @@ const IzinTakvimi = () => {
                                         ))}
                                     </div>
                                 </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     ))}
                 </div>
@@ -423,6 +429,10 @@ const IzinTakvimi = () => {
                     .calendar-day-header:last-child {
                         border-right: none;
                     }
+                    .calendar-day-header.weekend-header {
+                        background-color: #f3f3f3;
+                        color: #9ca3af;
+                    }
                     .calendar-body {
                         display: flex;
                         flex-direction: column;
@@ -450,6 +460,13 @@ const IzinTakvimi = () => {
                     }
                     .calendar-day.has-events {
                         background-color: #f8f9ff;
+                    }
+                    .calendar-day.weekend {
+                        background-color: #f8f8f8;
+                        color: #9ca3af;
+                    }
+                    .calendar-day.weekend .day-number {
+                        color: #9ca3af;
                     }
                     .day-number {
                         font-weight: 600;
