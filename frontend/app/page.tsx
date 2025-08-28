@@ -11,7 +11,7 @@ export default function HomePage() {
     useEffect(() => {
         const checkAuth = () => {
             try {
-                const isAuthenticated = authService.isAuthenticated();
+                const isAuthenticated = authService.isLoggedIn();
                 console.log('HomePage - Auth check:', isAuthenticated);
                 
                 if (isAuthenticated) {
