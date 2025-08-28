@@ -16,7 +16,7 @@ export default function HomePage() {
                 
                 if (isAuthenticated) {
                     console.log('HomePage - Kullanıcı giriş yapmış, dashboard\'a yönlendiriliyor');
-                    router.replace('/Dashboard');
+                    router.replace('/dashboard');
                 } else {
                     console.log('HomePage - Kullanıcı giriş yapmamış, login\'e yönlendiriliyor');
                     router.replace('/auth/login');
