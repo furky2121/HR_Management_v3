@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
@@ -19,6 +19,10 @@ import { Divider } from 'primereact/divider';
 import { InputMask } from 'primereact/inputmask';
 import { Message } from 'primereact/message';
 import { InputSwitch } from 'primereact/inputswitch';
+import { TabView, TabPanel } from 'primereact/tabview';
+import { Fieldset } from 'primereact/fieldset';
+import { RadioButton } from 'primereact/radiobutton';
+import { Panel } from 'primereact/panel';
 import personelService from '../services/personelService';
 import departmanService from '../services/departmanService';
 import kademeService from '../services/kademeService';
@@ -59,6 +63,20 @@ const Personeller = () => {
         maas: null,
         fotografUrl: '',
         adres: '',
+        medeniHal: '',
+        cinsiyet: '',
+        askerlikDurumu: '',
+        egitimDurumu: '',
+        kanGrubu: '',
+        ehliyetSinifi: '',
+        anneAdi: '',
+        babaAdi: '',
+        dogumYeri: '',
+        nufusIlKod: '',
+        nufusIlceKod: '',
+        acilDurumIletisim: '',
+        bankaHesapNo: '',
+        ibanNo: '',
         aktif: true
     });
     const [selectedPersoneller, setSelectedPersoneller] = useState(null);
@@ -68,6 +86,7 @@ const Personeller = () => {
     const [maasUyarisi, setMaasUyarisi] = useState('');
     const [pozisyonMaasBilgi, setPozisyonMaasBilgi] = useState(null);
     const [uploadedFile, setUploadedFile] = useState(null);
+    const [activeTabIndex, setActiveTabIndex] = useState(0);
     const toast = useRef(null);
     const dt = useRef(null);
     const fileUploadRef = useRef(null);
@@ -211,9 +230,13 @@ const Personeller = () => {
         setPozisyonMaasBilgi(null);
     };
 
-    const onPozisyonChange = async (e) => {
+    const onPozisyonChange = useCallback(async (e) => {
         const pozisyonId = e.value;
-        setPersonel({ ...personel, pozisyonId, yoneticiId: null });
+        setPersonel(prevPersonel => ({ 
+            ...prevPersonel, 
+            pozisyonId, 
+            yoneticiId: null 
+        }));
         setMaasUyarisi('');
 
         if (pozisyonId) {
@@ -240,15 +263,6 @@ const Personeller = () => {
                     (y.departmanId === departmanId && y.kademeSeviye < pozisyonKademeSeviye) ||
                     y.kademeSeviye === 1 // Genel Müdür her zaman dahil
                 );
-                console.log('🎯 Yönetici Filtreleme (+ Genel Müdür):', {
-                    pozisyon: secilenPozisyon.ad,
-                    departmanId,
-                    pozisyonKademeSeviye,
-                    toplamYonetici: yoneticiler.length,
-                    filtreliYonetici: filteredYoneticiler.length,
-                    genelMudurDahil: filteredYoneticiler.filter(y => y.kademeSeviye === 1).length > 0,
-                    yoneticiler: filteredYoneticiler
-                });
                 setYoneticilerFiltered(filteredYoneticiler);
             } else {
                 setYoneticilerFiltered([]);
@@ -257,11 +271,14 @@ const Personeller = () => {
             setPozisyonMaasBilgi(null);
             setYoneticilerFiltered([]);
         }
-    };
+    }, [pozisyonlarFiltered, yoneticiler]);
 
-    const onMaasChange = (e) => {
+    const onMaasChange = useCallback((e) => {
         const maas = e.value;
-        setPersonel({ ...personel, maas });
+        setPersonel(prevPersonel => ({ 
+            ...prevPersonel, 
+            maas 
+        }));
         
         if (maas && pozisyonMaasBilgi) {
             let uyari = '';
@@ -274,7 +291,7 @@ const Personeller = () => {
         } else {
             setMaasUyarisi('');
         }
-    };
+    }, [pozisyonMaasBilgi]);
 
     const openNew = () => {
         setPersonel({
@@ -293,6 +310,20 @@ const Personeller = () => {
             maas: null,
             fotografUrl: '',
             adres: '',
+            medeniHal: '',
+            cinsiyet: '',
+            askerlikDurumu: '',
+            egitimDurumu: '',
+            kanGrubu: '',
+            ehliyetSinifi: '',
+            anneAdi: '',
+            babaAdi: '',
+            dogumYeri: '',
+            nufusIlKod: '',
+            nufusIlceKod: '',
+            acilDurumIletisim: '',
+            bankaHesapNo: '',
+            ibanNo: '',
             aktif: true
         });
         setSubmitted(false);
@@ -302,6 +333,7 @@ const Personeller = () => {
         setYoneticilerFiltered([]);
         setSelectedDepartmanId(null);
         setUploadedFile(null);
+        setActiveTabIndex(0);
         setPersonelDialog(true);
     };
 
@@ -311,10 +343,43 @@ const Personeller = () => {
         setMaasUyarisi('');
         setPozisyonMaasBilgi(null);
         setUploadedFile(null);
+        setActiveTabIndex(0);
     };
 
     const savePersonel = async () => {
         setSubmitted(true);
+
+        // Tüm zorunlu alanları kontrol et ve hangi sekmede hata olduğunu belirle
+        const validateRequiredFields = () => {
+            const errors = [];
+            let firstErrorTabIndex = -1;
+
+            // Genel Bilgiler sekmesi zorunlu alanları (Tab index: 0)
+            if (!personel.tcKimlik || personel.tcKimlik.length !== 11) {
+                errors.push('TC Kimlik No (11 haneli)');
+                if (firstErrorTabIndex === -1) firstErrorTabIndex = 0;
+            }
+            if (!personel.ad || !personel.ad.trim()) {
+                errors.push('Ad');
+                if (firstErrorTabIndex === -1) firstErrorTabIndex = 0;
+            }
+            if (!personel.soyad || !personel.soyad.trim()) {
+                errors.push('Soyad');
+                if (firstErrorTabIndex === -1) firstErrorTabIndex = 0;
+            }
+
+            // Pozisyon Bilgileri sekmesi zorunlu alanları (Tab index: 1)
+            if (!personel.pozisyonId) {
+                errors.push('Pozisyon');
+                if (firstErrorTabIndex === -1) firstErrorTabIndex = 1;
+            }
+            if (!personel.iseBaslamaTarihi) {
+                errors.push('İşe Başlama Tarihi');
+                if (firstErrorTabIndex === -1) firstErrorTabIndex = 1;
+            }
+
+            return { errors, firstErrorTabIndex };
+        };
 
         // Kullanıcı adı validasyonu (sadece güncelleme için)
         if (personel.id && personel.kullaniciAdi) {
@@ -328,6 +393,23 @@ const Personeller = () => {
                 });
                 return;
             }
+        }
+
+        // Zorunlu alan kontrolü
+        const validation = validateRequiredFields();
+        if (validation.errors.length > 0) {
+            // Hataya sahip ilk sekmeye geç
+            if (validation.firstErrorTabIndex !== -1) {
+                setActiveTabIndex(validation.firstErrorTabIndex);
+            }
+            
+            toast.current.show({
+                severity: 'error',
+                summary: 'Eksik Bilgiler',
+                detail: `Tüm zorunlu alanları doldurunuz! Eksik alanlar: ${validation.errors.join(', ')}`,
+                life: 5000
+            });
+            return;
         }
 
         if (personel.tcKimlik.length === 11 && personel.ad.trim() && personel.soyad.trim() && 
@@ -446,6 +528,20 @@ const Personeller = () => {
             fotografUrl: personel.fotografUrl || '',
             adres: personel.adres || '',
             kullaniciAdi: personel.kullaniciAdi || '',
+            medeniHal: personel.medeniHal || '',
+            cinsiyet: personel.cinsiyet || '',
+            askerlikDurumu: personel.askerlikDurumu || '',
+            egitimDurumu: personel.egitimDurumu || '',
+            kanGrubu: personel.kanGrubu || '',
+            ehliyetSinifi: personel.ehliyetSinifi || '',
+            anneAdi: personel.anneAdi || '',
+            babaAdi: personel.babaAdi || '',
+            dogumYeri: personel.dogumYeri || '',
+            nufusIlKod: personel.nufusIlKod || '',
+            nufusIlceKod: personel.nufusIlceKod || '',
+            acilDurumIletisim: personel.acilDurumIletisim || '',
+            bankaHesapNo: personel.bankaHesapNo || '',
+            ibanNo: personel.ibanNo || '',
             // Handle dates
             dogumTarihi: personel.dogumTarihi ? new Date(personel.dogumTarihi) : null,
             iseBaslamaTarihi: personel.iseBaslamaTarihi ? new Date(personel.iseBaslamaTarihi) : null,
@@ -522,28 +618,72 @@ const Personeller = () => {
         dt.current.exportCSV();
     };
 
-    const onInputChange = (e, name) => {
+    const onInputChange = useCallback((e, name) => {
         const val = (e.target && e.target.value) || '';
-        let _personel = { ...personel };
-        _personel[`${name}`] = val;
-        setPersonel(_personel);
-    };
+        setPersonel(prevPersonel => ({
+            ...prevPersonel,
+            [name]: val
+        }));
+    }, []);
 
-    const onDropdownChange = (e, name) => {
+    const onDropdownChange = useCallback((e, name) => {
         const val = e.value;
-        let _personel = { ...personel };
-        _personel[`${name}`] = val;
-        setPersonel(_personel);
-    };
+        setPersonel(prevPersonel => ({
+            ...prevPersonel,
+            [name]: val
+        }));
+    }, []);
 
-    const onDateChange = (e, name) => {
+    const onDateChange = useCallback((e, name) => {
         const val = e.value;
-        let _personel = { ...personel };
-        _personel[`${name}`] = val;
-        setPersonel(_personel);
-    };
+        setPersonel(prevPersonel => ({
+            ...prevPersonel,
+            [name]: val
+        }));
+    }, []);
 
-    const leftToolbarTemplate = () => {
+    // Memoized dropdown options for better performance
+    const medeniHalOptions = useMemo(() => [
+        { label: 'Bekar', value: 'Bekar' },
+        { label: 'Evli', value: 'Evli' },
+        { label: 'Boşanmış', value: 'Bosanmis' },
+        { label: 'Dul', value: 'Dul' }
+    ], []);
+
+    const cinsiyetOptions = useMemo(() => [
+        { label: 'Erkek', value: 'Erkek' },
+        { label: 'Kadın', value: 'Kadin' }
+    ], []);
+
+    const askerlikDurumuOptions = useMemo(() => [
+        { label: 'Yapıldı', value: 'Yapildi' },
+        { label: 'Tecilli', value: 'Tecilli' },
+        { label: 'Muaf', value: 'Muaf' },
+        { label: 'Yapmadı', value: 'Yapmadi' }
+    ], []);
+
+    const egitimDurumuOptions = useMemo(() => [
+        { label: 'İlkokul', value: 'Ilkokul' },
+        { label: 'Ortaokul', value: 'Ortaokul' },
+        { label: 'Lise', value: 'Lise' },
+        { label: 'Ön Lisans', value: 'OnLisans' },
+        { label: 'Lisans', value: 'Lisans' },
+        { label: 'Yüksek Lisans', value: 'YuksekLisans' },
+        { label: 'Doktora', value: 'Doktora' }
+    ], []);
+
+    const kanGrubuOptions = useMemo(() => [
+        { label: 'A+', value: 'A+' },
+        { label: 'A-', value: 'A-' },
+        { label: 'B+', value: 'B+' },
+        { label: 'B-', value: 'B-' },
+        { label: 'AB+', value: 'AB+' },
+        { label: 'AB-', value: 'AB-' },
+        { label: 'O+', value: 'O+' },
+        { label: 'O-', value: 'O-' }
+    ], []);
+
+    const leftToolbarTemplate = useMemo(() => {
         return (
             <React.Fragment>
                 {permissions.write && (
@@ -556,9 +696,9 @@ const Personeller = () => {
                 )}
             </React.Fragment>
         );
-    };
+    }, [permissions.write, openNew]);
 
-    const rightToolbarTemplate = () => {
+    const rightToolbarTemplate = useMemo(() => {
         return (
             <React.Fragment>
                 <Button
@@ -569,7 +709,7 @@ const Personeller = () => {
                 />
             </React.Fragment>
         );
-    };
+    }, [exportCSV]);
 
     const actionBodyTemplate = (rowData) => {
         return (
@@ -832,298 +972,521 @@ const Personeller = () => {
 
             <Dialog
                 visible={personelDialog}
-                style={{ width: '900px' }}
+                style={{ width: '1200px' }}
                 header="Personel Detayları"
                 modal
                 className="p-fluid"
                 footer={personelDialogFooter}
                 onHide={hideDialog}
+                maximizable
             >
-                <div className="p-formgrid p-grid">
-                    {/* Sol Kolon */}
-                    <div className="p-field p-col-6">
-                        {/* Sicil Numarası (sadece güncelleme için) */}
-                        {personel.id && (
-                            <>
-                                <label htmlFor="sicilNo">Sicil Numarası</label>
-                                <InputText
-                                    id="sicilNo"
-                                    value={personel.id || ''}
-                                    disabled
-                                    className="p-inputtext-sm"
-                                />
-                            </>
-                        )}
-                        
-                        {/* Kullanıcı Adı (sadece güncelleme için) */}
-                        {personel.id && (
-                            <>
-                                <label htmlFor="kullaniciAdi" className="p-mt-3">Kullanıcı Adı</label>
-                                <InputText
-                                    id="kullaniciAdi"
-                                    value={personel.kullaniciAdi || ''}
-                                    onChange={(e) => onInputChange(e, 'kullaniciAdi')}
-                                    placeholder="kullanici.adi"
-                                    className="p-inputtext-sm"
-                                />
-                                <small className="p-text-secondary">
-                                    Sadece İngilizce harfler, sayılar, nokta (.) ve alt çizgi (_) kullanın.
-                                </small>
-                            </>
-                        )}
-                        
-                        <label htmlFor="tcKimlik" className={personel.id ? 'p-mt-3' : ''}>TC Kimlik No *</label>
-                        <InputMask
-                            id="tcKimlik"
-                            mask="99999999999"
-                            value={personel.tcKimlik}
-                            onChange={(e) => onInputChange(e, 'tcKimlik')}
-                            required
-                            className={submitted && personel.tcKimlik.length !== 11 ? 'p-invalid' : ''}
-                        />
-                        {submitted && personel.tcKimlik.length !== 11 && (
-                            <small className="p-error">TC Kimlik numarası 11 haneli olmalıdır.</small>
-                        )}
-                    </div>
+                <TabView activeIndex={activeTabIndex} onTabChange={(e) => setActiveTabIndex(e.index)}>
+                    {/* Genel Bilgiler Sekmesi */}
+                    <TabPanel header="Genel Bilgiler" leftIcon="pi pi-user">
+                        <div className="p-formgrid p-grid">
+                            {/* Sol Kolon */}
+                            <div className="p-field p-col-6">
+                                <Fieldset legend="Kimlik ve Sistem Bilgileri" className="p-mb-4">
+                                    {/* Sicil Numarası (sadece güncelleme için) */}
+                                    {personel.id && (
+                                        <div className="p-field">
+                                            <label htmlFor="sicilNo">Sicil Numarası</label>
+                                            <InputText
+                                                id="sicilNo"
+                                                value={personel.id || ''}
+                                                disabled
+                                                className="p-inputtext-sm"
+                                            />
+                                        </div>
+                                    )}
+                                    
+                                    {/* Kullanıcı Adı (sadece güncelleme için) */}
+                                    {personel.id && (
+                                        <div className="p-field">
+                                            <label htmlFor="kullaniciAdi">Kullanıcı Adı</label>
+                                            <InputText
+                                                id="kullaniciAdi"
+                                                value={personel.kullaniciAdi || ''}
+                                                onChange={(e) => onInputChange(e, 'kullaniciAdi')}
+                                                placeholder="kullanici.adi"
+                                                className="p-inputtext-sm"
+                                            />
+                                            <small className="p-text-secondary">
+                                                Sadece İngilizce harfler, sayılar, nokta (.) ve alt çizgi (_) kullanın.
+                                            </small>
+                                        </div>
+                                    )}
+                                    
+                                    <div className="p-field">
+                                        <label htmlFor="tcKimlik">TC Kimlik No *</label>
+                                        <InputMask
+                                            id="tcKimlik"
+                                            mask="99999999999"
+                                            value={personel.tcKimlik}
+                                            onChange={(e) => onInputChange(e, 'tcKimlik')}
+                                            required
+                                            className={submitted && personel.tcKimlik.length !== 11 ? 'p-invalid' : ''}
+                                        />
+                                        {submitted && personel.tcKimlik.length !== 11 && (
+                                            <small className="p-error">TC Kimlik numarası 11 haneli olmalıdır.</small>
+                                        )}
+                                    </div>
+                                </Fieldset>
 
-                    {/* Sağ Kolon - Fotoğraf */}
-                    <div className="p-field p-col-6">
-                        <label>Fotoğraf</label>
-                        <div className="p-d-flex p-ai-center">
-                            {(uploadedFile || personel.fotografUrl) ? (
-                                <div className="p-mr-2">
-                                    <Avatar
-                                        image={uploadedFile ? fileUploadService.getAvatarUrl(uploadedFile.fileName) : fileUploadService.getAvatarUrl(personel.fotografUrl)}
-                                        size="xlarge"
-                                        shape="circle"
-                                    />
-                                    <Button
-                                        icon="pi pi-times"
-                                        className="p-button-rounded p-button-danger p-button-sm"
-                                        onClick={removeUploadedFile}
-                                        tooltip="Fotoğrafı Kaldır"
-                                        style={{ marginLeft: '10px' }}
-                                    />
-                                </div>
-                            ) : (
-                                <FileUpload
-                                    ref={fileUploadRef}
-                                    mode="basic"
-                                    accept="image/*"
-                                    maxFileSize={5000000}
-                                    customUpload
-                                    uploadHandler={onFileUpload}
-                                    auto
-                                    chooseLabel="Fotoğraf Seç"
-                                    className="p-button-outlined"
-                                />
-                            )}
+                                <Fieldset legend="Kişisel Bilgiler" className="p-mb-4">
+                                    <div className="p-formgrid p-grid">
+                                        <div className="p-field p-col-6">
+                                            <label htmlFor="ad">Ad *</label>
+                                            <InputText
+                                                id="ad"
+                                                value={personel.ad}
+                                                onChange={(e) => onInputChange(e, 'ad')}
+                                                required
+                                                className={submitted && !personel.ad ? 'p-invalid' : ''}
+                                            />
+                                            {submitted && !personel.ad && (
+                                                <small className="p-error">Ad gereklidir.</small>
+                                            )}
+                                        </div>
+                                        <div className="p-field p-col-6">
+                                            <label htmlFor="soyad">Soyad *</label>
+                                            <InputText
+                                                id="soyad"
+                                                value={personel.soyad}
+                                                onChange={(e) => onInputChange(e, 'soyad')}
+                                                required
+                                                className={submitted && !personel.soyad ? 'p-invalid' : ''}
+                                            />
+                                            {submitted && !personel.soyad && (
+                                                <small className="p-error">Soyad gereklidir.</small>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="p-field">
+                                        <label htmlFor="dogumTarihi">Doğum Tarihi</label>
+                                        <Calendar
+                                            id="dogumTarihi"
+                                            value={personel.dogumTarihi}
+                                            onChange={(e) => onDateChange(e, 'dogumTarihi')}
+                                            dateFormat="dd/mm/yy"
+                                            locale="tr"
+                                            placeholder="dd/mm/yyyy"
+                                            showIcon
+                                        />
+                                    </div>
+                                </Fieldset>
+                            </div>
+
+                            {/* Sağ Kolon - Fotoğraf ve İletişim */}
+                            <div className="p-field p-col-6">
+                                <Fieldset legend="Fotoğraf" className="p-mb-4">
+                                    <div className="p-d-flex p-ai-center p-jc-center">
+                                        {(uploadedFile || personel.fotografUrl) ? (
+                                            <div className="p-text-center">
+                                                <Avatar
+                                                    image={uploadedFile ? fileUploadService.getAvatarUrl(uploadedFile.fileName) : fileUploadService.getAvatarUrl(personel.fotografUrl)}
+                                                    size="xlarge"
+                                                    shape="circle"
+                                                />
+                                                <div className="p-mt-2">
+                                                    <Button
+                                                        icon="pi pi-times"
+                                                        className="p-button-rounded p-button-danger p-button-sm"
+                                                        onClick={removeUploadedFile}
+                                                        tooltip="Fotoğrafı Kaldır"
+                                                    />
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <FileUpload
+                                                ref={fileUploadRef}
+                                                mode="basic"
+                                                accept="image/*"
+                                                maxFileSize={5000000}
+                                                customUpload
+                                                uploadHandler={onFileUpload}
+                                                auto
+                                                chooseLabel="Fotoğraf Seç"
+                                                className="p-button-outlined"
+                                            />
+                                        )}
+                                    </div>
+                                </Fieldset>
+
+                                <Fieldset legend="İletişim Bilgileri" className="p-mb-4">
+                                    <div className="p-field">
+                                        <label htmlFor="email">Email</label>
+                                        <InputText
+                                            id="email"
+                                            type="email"
+                                            value={personel.email}
+                                            onChange={(e) => onInputChange(e, 'email')}
+                                        />
+                                    </div>
+                                    <div className="p-field">
+                                        <label htmlFor="telefon">Telefon</label>
+                                        <InputMask
+                                            id="telefon"
+                                            mask="9999-999-9999"
+                                            value={personel.telefon}
+                                            onChange={(e) => onInputChange(e, 'telefon')}
+                                        />
+                                    </div>
+                                    <div className="p-field">
+                                        <label htmlFor="adres">Adres</label>
+                                        <InputTextarea
+                                            id="adres"
+                                            value={personel.adres || ''}
+                                            onChange={(e) => onInputChange(e, 'adres')}
+                                            rows={3}
+                                        />
+                                    </div>
+                                </Fieldset>
+                            </div>
                         </div>
-                    </div>
-                </div>
+                    </TabPanel>
 
-                <div className="p-formgrid p-grid">
-                    <div className="p-field p-col-6">
-                        <label htmlFor="ad">Ad *</label>
-                        <InputText
-                            id="ad"
-                            value={personel.ad}
-                            onChange={(e) => onInputChange(e, 'ad')}
-                            required
-                            className={submitted && !personel.ad ? 'p-invalid' : ''}
-                        />
-                        {submitted && !personel.ad && (
-                            <small className="p-error">Ad gereklidir.</small>
-                        )}
-                    </div>
+                    {/* Pozisyon Bilgileri Sekmesi */}
+                    <TabPanel header="Pozisyon Bilgileri" leftIcon="pi pi-briefcase">
+                        <div className="p-formgrid p-grid">
+                            <div className="p-field p-col-6">
+                                <Fieldset legend="Organizasyon Bilgileri" className="p-mb-4">
+                                    <div className="p-field">
+                                        <label htmlFor="departman">Departman *</label>
+                                        <Dropdown
+                                            id="departman"
+                                            value={selectedDepartmanId}
+                                            options={departmanlar}
+                                            onChange={onDepartmanChange}
+                                            optionLabel="ad"
+                                            optionValue="id"
+                                            placeholder="Departman seçiniz"
+                                            className={submitted && !personel.pozisyonId ? 'p-invalid' : ''}
+                                        />
+                                    </div>
+                                    <div className="p-field">
+                                        <label htmlFor="pozisyonId">Pozisyon *</label>
+                                        <Dropdown
+                                            id="pozisyonId"
+                                            value={personel.pozisyonId}
+                                            options={pozisyonlarFiltered}
+                                            onChange={onPozisyonChange}
+                                            optionLabel="ad"
+                                            optionValue="id"
+                                            placeholder="Pozisyon seçiniz"
+                                            disabled={!selectedDepartmanId}
+                                            className={submitted && !personel.pozisyonId ? 'p-invalid' : ''}
+                                        />
+                                        {submitted && !personel.pozisyonId && (
+                                            <small className="p-error">Pozisyon seçimi gereklidir.</small>
+                                        )}
+                                    </div>
+                                    <div className="p-field">
+                                        <label htmlFor="yoneticiId">Yönetici</label>
+                                        <Dropdown
+                                            id="yoneticiId"
+                                            value={personel.yoneticiId}
+                                            options={yoneticilerFiltered}
+                                            onChange={(e) => onDropdownChange(e, 'yoneticiId')}
+                                            optionLabel="adSoyad"
+                                            optionValue="id"
+                                            itemTemplate={yoneticiItemTemplate}
+                                            placeholder="Yönetici seçiniz"
+                                            disabled={!personel.pozisyonId}
+                                        />
+                                    </div>
+                                </Fieldset>
 
-                    <div className="p-field p-col-6">
-                        <label htmlFor="soyad">Soyad *</label>
-                        <InputText
-                            id="soyad"
-                            value={personel.soyad}
-                            onChange={(e) => onInputChange(e, 'soyad')}
-                            required
-                            className={submitted && !personel.soyad ? 'p-invalid' : ''}
-                        />
-                        {submitted && !personel.soyad && (
-                            <small className="p-error">Soyad gereklidir.</small>
-                        )}
-                    </div>
-                </div>
+                                <Fieldset legend="İş Tarihleri" className="p-mb-4">
+                                    <div className="p-field">
+                                        <label htmlFor="iseBaslamaTarihi">İşe Başlama Tarihi *</label>
+                                        <Calendar
+                                            id="iseBaslamaTarihi"
+                                            value={personel.iseBaslamaTarihi}
+                                            onChange={(e) => onDateChange(e, 'iseBaslamaTarihi')}
+                                            dateFormat="dd/mm/yy"
+                                            locale="tr"
+                                            placeholder="dd/mm/yyyy"
+                                            showIcon
+                                            required
+                                            className={submitted && !personel.iseBaslamaTarihi ? 'p-invalid' : ''}
+                                        />
+                                        {submitted && !personel.iseBaslamaTarihi && (
+                                            <small className="p-error">İşe başlama tarihi gereklidir.</small>
+                                        )}
+                                    </div>
+                                    <div className="p-field">
+                                        <label htmlFor="cikisTarihi">Çıkış Tarihi</label>
+                                        <Calendar
+                                            id="cikisTarihi"
+                                            value={personel.cikisTarihi}
+                                            onChange={(e) => onDateChange(e, 'cikisTarihi')}
+                                            dateFormat="dd/mm/yy"
+                                            locale="tr"
+                                            placeholder="dd/mm/yyyy"
+                                            showIcon
+                                        />
+                                    </div>
+                                </Fieldset>
+                            </div>
 
-                <div className="p-formgrid p-grid">
-                    <div className="p-field p-col-6">
-                        <label htmlFor="email">Email</label>
-                        <InputText
-                            id="email"
-                            type="email"
-                            value={personel.email}
-                            onChange={(e) => onInputChange(e, 'email')}
-                        />
-                    </div>
+                            <div className="p-field p-col-6">
+                                <Fieldset legend="Maaş Bilgileri" className="p-mb-4">
+                                    {pozisyonMaasBilgi && (
+                                        <div className="p-field">
+                                            <Message
+                                                severity="info"
+                                                text={`${pozisyonMaasBilgi.ad} pozisyonu maaş aralığı: ₺${pozisyonMaasBilgi.minMaas?.toLocaleString() || '0'} - ₺${pozisyonMaasBilgi.maxMaas?.toLocaleString() || '∞'}`}
+                                            />
+                                        </div>
+                                    )}
+                                    <div className="p-field">
+                                        <label htmlFor="maas">Maaş (₺)</label>
+                                        <InputNumber
+                                            id="maas"
+                                            value={personel.maas}
+                                            onValueChange={onMaasChange}
+                                            mode="currency"
+                                            currency="TRY"
+                                            locale="tr-TR"
+                                            currencyDisplay="code"
+                                            placeholder="0,00"
+                                        />
+                                    </div>
+                                    {maasUyarisi && (
+                                        <div className="p-field">
+                                            <Message severity="warn" text={maasUyarisi} />
+                                        </div>
+                                    )}
+                                </Fieldset>
 
-                    <div className="p-field p-col-6">
-                        <label htmlFor="telefon">Telefon</label>
-                        <InputMask
-                            id="telefon"
-                            mask="9999-999-9999"
-                            value={personel.telefon}
-                            onChange={(e) => onInputChange(e, 'telefon')}
-                        />
-                    </div>
-                </div>
+                                <Fieldset legend="Durum" className="p-mb-4">
+                                    <div className="p-field">
+                                        <label htmlFor="aktif">Personel Durumu</label>
+                                        <div className="p-mt-2">
+                                            <InputSwitch
+                                                id="aktif"
+                                                checked={personel.aktif}
+                                                onChange={(e) => setPersonel({ ...personel, aktif: e.value })}
+                                            />
+                                            <span className="p-ml-2">
+                                                {personel.aktif ? 'Aktif' : 'Pasif'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </Fieldset>
+                            </div>
+                        </div>
+                    </TabPanel>
 
-                <div className="p-formgrid p-grid">
-                    <div className="p-field p-col-4">
-                        <label htmlFor="dogumTarihi">Doğum Tarihi</label>
-                        <Calendar
-                            id="dogumTarihi"
-                            value={personel.dogumTarihi}
-                            onChange={(e) => onDateChange(e, 'dogumTarihi')}
-                            dateFormat="dd/mm/yy"
-                            locale="tr"
-                            placeholder="dd/mm/yyyy"
-                            showIcon
-                        />
-                    </div>
+                    {/* Özlük Bilgileri Sekmesi */}
+                    <TabPanel header="Özlük Bilgileri" leftIcon="pi pi-id-card">
+                        <div className="p-formgrid p-grid">
+                            <div className="p-field p-col-6">
+                                <Fieldset legend="Kisisel Bilgiler" className="p-mb-4">
+                                    <div className="p-formgrid p-grid">
+                                        <div className="p-field p-col-6">
+                                            <label htmlFor="medeniHal">Medeni Hal</label>
+                                            <Dropdown
+                                                id="medeniHal"
+                                                value={personel.medeniHal}
+                                                options={medeniHalOptions}
+                                                onChange={(e) => onDropdownChange(e, 'medeniHal')}
+                                                optionLabel="label"
+                                                optionValue="value"
+                                                placeholder="Medeni hal seçiniz"
+                                            />
+                                        </div>
+                                        <div className="p-field p-col-6">
+                                            <label htmlFor="cinsiyet">Cinsiyet</label>
+                                            <Dropdown
+                                                id="cinsiyet"
+                                                value={personel.cinsiyet}
+                                                options={cinsiyetOptions}
+                                                onChange={(e) => onDropdownChange(e, 'cinsiyet')}
+                                                optionLabel="label"
+                                                optionValue="value"
+                                                placeholder="Cinsiyet seçiniz"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="p-field">
+                                        <label htmlFor="dogumYeri">Doğum Yeri</label>
+                                        <InputText
+                                            id="dogumYeri"
+                                            value={personel.dogumYeri}
+                                            onChange={(e) => onInputChange(e, 'dogumYeri')}
+                                            placeholder="Doğum yeri giriniz"
+                                        />
+                                    </div>
+                                    <div className="p-field">
+                                        <label htmlFor="kanGrubu">Kan Grubu</label>
+                                        <Dropdown
+                                            id="kanGrubu"
+                                            value={personel.kanGrubu}
+                                            options={[
+                                                { label: 'A+', value: 'A+' },
+                                                { label: 'A-', value: 'A-' },
+                                                { label: 'B+', value: 'B+' },
+                                                { label: 'B-', value: 'B-' },
+                                                { label: 'AB+', value: 'AB+' },
+                                                { label: 'AB-', value: 'AB-' },
+                                                { label: '0+', value: '0+' },
+                                                { label: '0-', value: '0-' }
+                                            ]}
+                                            onChange={(e) => onDropdownChange(e, 'kanGrubu')}
+                                            optionLabel="label"
+                                            optionValue="value"
+                                            placeholder="Kan grubu seçiniz"
+                                        />
+                                    </div>
+                                </Fieldset>
 
-                    <div className="p-field p-col-4">
-                        <label htmlFor="iseBaslamaTarihi">İşe Başlama Tarihi *</label>
-                        <Calendar
-                            id="iseBaslamaTarihi"
-                            value={personel.iseBaslamaTarihi}
-                            onChange={(e) => onDateChange(e, 'iseBaslamaTarihi')}
-                            dateFormat="dd/mm/yy"
-                            locale="tr"
-                            placeholder="dd/mm/yyyy"
-                            showIcon
-                            required
-                            className={submitted && !personel.iseBaslamaTarihi ? 'p-invalid' : ''}
-                        />
-                        {submitted && !personel.iseBaslamaTarihi && (
-                            <small className="p-error">İşe başlama tarihi gereklidir.</small>
-                        )}
-                    </div>
+                                <Fieldset legend="Aile Bilgileri" className="p-mb-4">
+                                    <div className="p-field">
+                                        <label htmlFor="anneAdi">Anne Adı</label>
+                                        <InputText
+                                            id="anneAdi"
+                                            value={personel.anneAdi}
+                                            onChange={(e) => onInputChange(e, 'anneAdi')}
+                                            placeholder="Anne adını giriniz"
+                                        />
+                                    </div>
+                                    <div className="p-field">
+                                        <label htmlFor="babaAdi">Baba Adı</label>
+                                        <InputText
+                                            id="babaAdi"
+                                            value={personel.babaAdi}
+                                            onChange={(e) => onInputChange(e, 'babaAdi')}
+                                            placeholder="Baba adını giriniz"
+                                        />
+                                    </div>
+                                </Fieldset>
+                            </div>
 
-                    <div className="p-field p-col-4">
-                        <label htmlFor="cikisTarihi">Çıkış Tarihi</label>
-                        <Calendar
-                            id="cikisTarihi"
-                            value={personel.cikisTarihi}
-                            onChange={(e) => onDateChange(e, 'cikisTarihi')}
-                            dateFormat="dd/mm/yy"
-                            locale="tr"
-                            placeholder="dd/mm/yyyy"
-                            showIcon
-                        />
-                    </div>
-                </div>
+                            <div className="p-field p-col-6">
+                                <Fieldset legend="Eğitim ve Askerlik" className="p-mb-4">
+                                    <div className="p-field">
+                                        <label htmlFor="egitimDurumu">Eğitim Durumu</label>
+                                        <Dropdown
+                                            id="egitimDurumu"
+                                            value={personel.egitimDurumu}
+                                            options={[
+                                                { label: 'İlkokul', value: 'Ilkokul' },
+                                                { label: 'Ortaokul', value: 'Ortaokul' },
+                                                { label: 'Lise', value: 'Lise' },
+                                                { label: 'Ön Lisans', value: 'OnLisans' },
+                                                { label: 'Lisans', value: 'Lisans' },
+                                                { label: 'Yüksek Lisans', value: 'YuksekLisans' },
+                                                { label: 'Doktora', value: 'Doktora' }
+                                            ]}
+                                            onChange={(e) => onDropdownChange(e, 'egitimDurumu')}
+                                            optionLabel="label"
+                                            optionValue="value"
+                                            placeholder="Eğitim durumu seçiniz"
+                                        />
+                                    </div>
+                                    <div className="p-field">
+                                        <label htmlFor="askerlikDurumu">Askerlik Durumu</label>
+                                        <Dropdown
+                                            id="askerlikDurumu"
+                                            value={personel.askerlikDurumu}
+                                            options={[
+                                                { label: 'Yapılmadı', value: 'Yapilmadi' },
+                                                { label: 'Yapıldı', value: 'Yapildi' },
+                                                { label: 'Muaf', value: 'Muaf' },
+                                                { label: 'Tecilli', value: 'Tecilli' }
+                                            ]}
+                                            onChange={(e) => onDropdownChange(e, 'askerlikDurumu')}
+                                            optionLabel="label"
+                                            optionValue="value"
+                                            placeholder="Askerlik durumu seçiniz"
+                                        />
+                                    </div>
+                                    <div className="p-field">
+                                        <label htmlFor="ehliyetSinifi">Ehliyet Sınıfı</label>
+                                        <InputText
+                                            id="ehliyetSinifi"
+                                            value={personel.ehliyetSinifi}
+                                            onChange={(e) => onInputChange(e, 'ehliyetSinifi')}
+                                            placeholder="A, B, C vb."
+                                        />
+                                    </div>
+                                </Fieldset>
 
-                <Divider />
+                                <Fieldset legend="Nüfus Bilgileri" className="p-mb-4">
+                                    <div className="p-formgrid p-grid">
+                                        <div className="p-field p-col-6">
+                                            <label htmlFor="nufusIlKod">Nüfus İl Kodu</label>
+                                            <InputText
+                                                id="nufusIlKod"
+                                                value={personel.nufusIlKod}
+                                                onChange={(e) => onInputChange(e, 'nufusIlKod')}
+                                                placeholder="İl kodu"
+                                            />
+                                        </div>
+                                        <div className="p-field p-col-6">
+                                            <label htmlFor="nufusIlceKod">Nüfus İlçe Kodu</label>
+                                            <InputText
+                                                id="nufusIlceKod"
+                                                value={personel.nufusIlceKod}
+                                                onChange={(e) => onInputChange(e, 'nufusIlceKod')}
+                                                placeholder="İlçe kodu"
+                                            />
+                                        </div>
+                                    </div>
+                                </Fieldset>
+                            </div>
+                        </div>
+                    </TabPanel>
 
-                <div className="p-formgrid p-grid">
-                    <div className="p-field p-col-4">
-                        <label htmlFor="departman">Departman *</label>
-                        <Dropdown
-                            id="departman"
-                            value={selectedDepartmanId}
-                            options={departmanlar}
-                            onChange={onDepartmanChange}
-                            optionLabel="ad"
-                            optionValue="id"
-                            placeholder="Departman seçiniz"
-                            className={submitted && !personel.pozisyonId ? 'p-invalid' : ''}
-                        />
-                    </div>
+                    {/* Acil Durum & Banka Sekmesi */}
+                    <TabPanel header="Acil Durum & Banka" leftIcon="pi pi-phone">
+                        <div className="p-formgrid p-grid">
+                            <div className="p-field p-col-6">
+                                <Fieldset legend="Acil Durum İletişimi" className="p-mb-4">
+                                    <div className="p-field">
+                                        <label htmlFor="acilDurumIletisim">Acil Durum İletişim Bilgileri</label>
+                                        <InputTextarea
+                                            id="acilDurumIletisim"
+                                            value={personel.acilDurumIletisim}
+                                            onChange={(e) => onInputChange(e, 'acilDurumIletisim')}
+                                            rows={4}
+                                            placeholder="Ad Soyad, Yakınlık, Telefon"
+                                        />
+                                        <small className="p-text-secondary">
+                                            Örnek: Ahmet Yılmaz, Eş, 0555-123-4567
+                                        </small>
+                                    </div>
+                                </Fieldset>
+                            </div>
 
-                    <div className="p-field p-col-4">
-                        <label htmlFor="pozisyonId">Pozisyon *</label>
-                        <Dropdown
-                            id="pozisyonId"
-                            value={personel.pozisyonId}
-                            options={pozisyonlarFiltered}
-                            onChange={onPozisyonChange}
-                            optionLabel="ad"
-                            optionValue="id"
-                            placeholder="Pozisyon seçiniz"
-                            disabled={!selectedDepartmanId}
-                            className={submitted && !personel.pozisyonId ? 'p-invalid' : ''}
-                        />
-                        {submitted && !personel.pozisyonId && (
-                            <small className="p-error">Pozisyon seçimi gereklidir.</small>
-                        )}
-                    </div>
-
-                    <div className="p-field p-col-4">
-                        <label htmlFor="yoneticiId">Yönetici</label>
-                        <Dropdown
-                            id="yoneticiId"
-                            value={personel.yoneticiId}
-                            options={yoneticilerFiltered}
-                            onChange={(e) => onDropdownChange(e, 'yoneticiId')}
-                            optionLabel="adSoyad"
-                            optionValue="id"
-                            itemTemplate={yoneticiItemTemplate}
-                            placeholder="Yönetici seçiniz"
-                            disabled={!personel.pozisyonId}
-                        />
-                    </div>
-                </div>
-
-                {pozisyonMaasBilgi && (
-                    <div className="p-field">
-                        <Message
-                            severity="info"
-                            text={`${pozisyonMaasBilgi.ad} pozisyonu maaş aralığı: ₺${pozisyonMaasBilgi.minMaas?.toLocaleString() || '0'} - ₺${pozisyonMaasBilgi.maxMaas?.toLocaleString() || '∞'}`}
-                        />
-                    </div>
-                )}
-
-                <div className="p-field">
-                    <label htmlFor="maas">Maaş (₺)</label>
-                    <InputNumber
-                        id="maas"
-                        value={personel.maas}
-                        onValueChange={onMaasChange}
-                        mode="currency"
-                        currency="TRY"
-                        locale="tr-TR"
-                        currencyDisplay="code"
-                        placeholder="0,00"
-                    />
-                </div>
-
-                {maasUyarisi && (
-                    <div className="p-field">
-                        <Message severity="warn" text={maasUyarisi} />
-                    </div>
-                )}
-
-                <div className="p-field">
-                    <label htmlFor="adres">Adres</label>
-                    <InputTextarea
-                        id="adres"
-                        value={personel.adres || ''}
-                        onChange={(e) => onInputChange(e, 'adres')}
-                        rows={3}
-                        cols={20}
-                    />
-                </div>
-
-                <div className="p-field">
-                    <label htmlFor="aktif">Durum</label>
-                    <div>
-                        <InputSwitch
-                            id="aktif"
-                            checked={personel.aktif}
-                            onChange={(e) => setPersonel({ ...personel, aktif: e.value })}
-                        />
-                        <span className="p-ml-2">
-                            {personel.aktif ? 'Aktif' : 'Pasif'}
-                        </span>
-                    </div>
-                </div>
+                            <div className="p-field p-col-6">
+                                <Fieldset legend="Banka Bilgileri" className="p-mb-4">
+                                    <div className="p-field">
+                                        <label htmlFor="bankaHesapNo">Banka Hesap No</label>
+                                        <InputText
+                                            id="bankaHesapNo"
+                                            value={personel.bankaHesapNo}
+                                            onChange={(e) => onInputChange(e, 'bankaHesapNo')}
+                                            placeholder="Hesap numarası"
+                                        />
+                                    </div>
+                                    <div className="p-field">
+                                        <label htmlFor="ibanNo">IBAN No</label>
+                                        <InputMask
+                                            id="ibanNo"
+                                            mask="TR99 9999 9999 9999 9999 9999 99"
+                                            value={personel.ibanNo}
+                                            onChange={(e) => onInputChange(e, 'ibanNo')}
+                                            placeholder="TR00 0000 0000 0000 0000 0000 00"
+                                        />
+                                    </div>
+                                </Fieldset>
+                            </div>
+                        </div>
+                    </TabPanel>
+                </TabView>
             </Dialog>
         </div>
     );

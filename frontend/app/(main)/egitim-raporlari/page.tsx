@@ -10,7 +10,7 @@ import { Calendar } from 'primereact/calendar';
 import { Button } from 'primereact/button';
 import { Tag } from 'primereact/tag';
 import { ProgressBar } from 'primereact/progressbar';
-import egitimService from '../../../src/services/egitimService';
+import videoEgitimService from '../../../src/services/videoEgitimService';
 
 const EgitimRaporlariPage = () => {
     const [loading, setLoading] = useState(true);
@@ -52,24 +52,24 @@ const EgitimRaporlariPage = () => {
         try {
             setLoading(true);
             
-            // Eğitim istatistikleri
-            const stats = await egitimService.getEgitimIstatistikleri(selectedYear, selectedMonth);
+            // Video eğitim istatistikleri
+            const stats = await videoEgitimService.getVideoEgitimIstatistikleri(selectedYear, selectedMonth);
             setEgitimIstatistikleri(stats.data.data || {
-                toplamEgitim: 0,
-                tamamlananEgitim: 0,
-                devamEdenEgitim: 0,
-                planlananEgitim: 0,
+                toplamVideoEgitim: 0,
+                tamamlananAtama: 0,
+                devamEdenAtama: 0,
+                planlananAtama: 0,
                 toplamKatilimci: 0,
-                ortalamaPuan: 0,
-                basariOrani: 0
+                ortalamaIzlemeSuresi: 0,
+                tamamlanmaOrani: 0
             });
 
-            // Personel eğitim özeti
-            const personelOzet = await egitimService.getPersonelEgitimOzeti(selectedYear);
+            // Personel video eğitim özeti
+            const personelOzet = await videoEgitimService.getPersonelVideoEgitimOzeti(selectedYear);
             setPersonelEgitimOzeti(personelOzet.data.data || []);
 
-            // Departman bazlı eğitimler
-            const departmanEgitim = await egitimService.getDepartmanBazliEgitimler(selectedYear);
+            // Departman bazlı video eğitimler
+            const departmanEgitim = await videoEgitimService.getDepartmanBazliVideoEgitimler(selectedYear);
             setDepartmanBazliEgitimler(departmanEgitim.data.data || []);
 
             // Grafik verileri
@@ -77,49 +77,49 @@ const EgitimRaporlariPage = () => {
             prepareMonthlyChartData();
             
         } catch (error) {
-            console.error('Raporlar yüklenirken hata:', error);
+            console.error('Video eğitim raporları yüklenirken hata:', error);
             // Örnek veri ile devam et
-            setMockData();
+            setVideoEgitimMockData();
         } finally {
             setLoading(false);
         }
     };
 
-    const setMockData = () => {
-        // Örnek istatistikler
+    const setVideoEgitimMockData = () => {
+        // Örnek video eğitim istatistikleri
         setEgitimIstatistikleri({
-            toplamEgitim: 45,
-            tamamlananEgitim: 28,
-            devamEdenEgitim: 12,
-            planlananEgitim: 5,
+            toplamVideoEgitim: 52,
+            tamamlananAtama: 38,
+            devamEdenAtama: 14,
+            planlananAtama: 8,
             toplamKatilimci: 234,
-            ortalamaPuan: 78.5,
-            basariOrani: 85
+            ortalamaIzlemeSuresi: 142.5,
+            tamamlanmaOrani: 73
         });
 
-        // Örnek personel eğitim özeti
+        // Örnek personel video eğitim özeti
         setPersonelEgitimOzeti([
-            { id: 1, personelAd: 'Ahmet Yılmaz', departman: 'Bilgi İşlem', toplamEgitim: 8, tamamlanan: 6, ortalamaPuan: 85, toplamSaat: 120 },
-            { id: 2, personelAd: 'Ayşe Demir', departman: 'İnsan Kaynakları', toplamEgitim: 12, tamamlanan: 10, ortalamaPuan: 92, toplamSaat: 180 },
-            { id: 3, personelAd: 'Mehmet Kaya', departman: 'Satış', toplamEgitim: 6, tamamlanan: 5, ortalamaPuan: 78, toplamSaat: 90 },
-            { id: 4, personelAd: 'Fatma Öz', departman: 'Muhasebe', toplamEgitim: 10, tamamlanan: 8, ortalamaPuan: 88, toplamSaat: 150 },
-            { id: 5, personelAd: 'Ali Veli', departman: 'Üretim', toplamEgitim: 7, tamamlanan: 7, ortalamaPuan: 95, toplamSaat: 105 }
+            { id: 1, personelAd: 'Ahmet Yılmaz', departman: 'Bilgi İşlem', toplamVideoEgitim: 12, tamamlanan: 9, izlemeYuzdesi: 85, toplamSure: 450 },
+            { id: 2, personelAd: 'Ayşe Demir', departman: 'İnsan Kaynakları', toplamVideoEgitim: 15, tamamlanan: 13, izlemeYuzdesi: 92, toplamSure: 680 },
+            { id: 3, personelAd: 'Mehmet Kaya', departman: 'Satış', toplamVideoEgitim: 8, tamamlanan: 6, izlemeYuzdesi: 78, toplamSure: 320 },
+            { id: 4, personelAd: 'Fatma Öz', departman: 'Muhasebe', toplamVideoEgitim: 10, tamamlanan: 8, izlemeYuzdesi: 88, toplamSure: 520 },
+            { id: 5, personelAd: 'Ali Veli', departman: 'Üretim', toplamVideoEgitim: 7, tamamlanan: 7, izlemeYuzdesi: 95, toplamSure: 380 }
         ]);
 
-        // Örnek departman bazlı eğitimler
+        // Örnek departman bazlı video eğitimler
         setDepartmanBazliEgitimler([
-            { id: 1, departman: 'Bilgi İşlem', toplamEgitim: 45, toplamKatilimci: 38, ortalamaPuan: 82, tamamlanmaOrani: 75 },
-            { id: 2, departman: 'İnsan Kaynakları', toplamEgitim: 38, toplamKatilimci: 42, ortalamaPuan: 88, tamamlanmaOrani: 85 },
-            { id: 3, departman: 'Satış', toplamEgitim: 52, toplamKatilimci: 65, ortalamaPuan: 75, tamamlanmaOrani: 68 },
-            { id: 4, departman: 'Muhasebe', toplamEgitim: 28, toplamKatilimci: 22, ortalamaPuan: 90, tamamlanmaOrani: 92 },
-            { id: 5, departman: 'Üretim', toplamEgitim: 71, toplamKatilimci: 67, ortalamaPuan: 78, tamamlanmaOrani: 70 }
+            { id: 1, departman: 'Bilgi İşlem', toplamVideoEgitim: 65, toplamKatilimci: 48, ortalamaIzlemeSuresi: 125, tamamlanmaOrani: 75 },
+            { id: 2, departman: 'İnsan Kaynakları', toplamVideoEgitim: 48, toplamKatilimci: 52, ortalamaIzlemeSuresi: 155, tamamlanmaOrani: 85 },
+            { id: 3, departman: 'Satış', toplamVideoEgitim: 72, toplamKatilimci: 85, ortalamaIzlemeSuresi: 98, tamamlanmaOrani: 68 },
+            { id: 4, departman: 'Muhasebe', toplamVideoEgitim: 35, toplamKatilimci: 28, ortalamaIzlemeSuresi: 180, tamamlanmaOrani: 92 },
+            { id: 5, departman: 'Üretim', toplamVideoEgitim: 91, toplamKatilimci: 77, ortalamaIzlemeSuresi: 110, tamamlanmaOrani: 70 }
         ]);
 
         // Grafik verileri
         prepareChartData({
-            tamamlananEgitim: 28,
-            devamEdenEgitim: 12,
-            planlananEgitim: 5
+            tamamlananAtama: 38,
+            devamEdenAtama: 14,
+            planlananAtama: 8
         });
         prepareMonthlyChartData();
     };
@@ -131,9 +131,9 @@ const EgitimRaporlariPage = () => {
             labels: ['Tamamlanan', 'Devam Eden', 'Planlanan'],
             datasets: [{
                 data: [
-                    stats?.tamamlananEgitim || 0,
-                    stats?.devamEdenEgitim || 0,
-                    stats?.planlananEgitim || 0
+                    stats?.tamamlananAtama || 0,
+                    stats?.devamEdenAtama || 0,
+                    stats?.planlananAtama || 0
                 ],
                 backgroundColor: [
                     documentStyle.getPropertyValue('--green-500'),
@@ -252,11 +252,11 @@ const EgitimRaporlariPage = () => {
                         <Card>
                             <div className="flex justify-content-between mb-3">
                                 <div>
-                                    <span className="block text-500 font-medium mb-3">Toplam Eğitim</span>
-                                    <div className="text-900 font-medium text-xl">{egitimIstatistikleri.toplamEgitim || 0}</div>
+                                    <span className="block text-500 font-medium mb-3">Toplam Video Eğitim</span>
+                                    <div className="text-900 font-medium text-xl">{egitimIstatistikleri.toplamVideoEgitim || 0}</div>
                                 </div>
                                 <div className="flex align-items-center justify-content-center bg-blue-100 border-round" style={{ width: '2.5rem', height: '2.5rem' }}>
-                                    <i className="pi pi-book text-blue-500 text-xl" />
+                                    <i className="pi pi-play text-blue-500 text-xl" />
                                 </div>
                             </div>
                         </Card>
@@ -278,11 +278,11 @@ const EgitimRaporlariPage = () => {
                         <Card>
                             <div className="flex justify-content-between mb-3">
                                 <div>
-                                    <span className="block text-500 font-medium mb-3">Ortalama Puan</span>
-                                    <div className="text-900 font-medium text-xl">{egitimIstatistikleri.ortalamaPuan || 0}</div>
+                                    <span className="block text-500 font-medium mb-3">Ort. İzleme Süresi (dk)</span>
+                                    <div className="text-900 font-medium text-xl">{egitimIstatistikleri.ortalamaIzlemeSuresi || 0}</div>
                                 </div>
                                 <div className="flex align-items-center justify-content-center bg-orange-100 border-round" style={{ width: '2.5rem', height: '2.5rem' }}>
-                                    <i className="pi pi-star text-orange-500 text-xl" />
+                                    <i className="pi pi-clock text-orange-500 text-xl" />
                                 </div>
                             </div>
                         </Card>
@@ -291,11 +291,11 @@ const EgitimRaporlariPage = () => {
                         <Card>
                             <div className="flex justify-content-between mb-3">
                                 <div>
-                                    <span className="block text-500 font-medium mb-3">Başarı Oranı</span>
-                                    <div className="text-900 font-medium text-xl">%{egitimIstatistikleri.basariOrani || 0}</div>
+                                    <span className="block text-500 font-medium mb-3">Tamamlanma Oranı</span>
+                                    <div className="text-900 font-medium text-xl">%{egitimIstatistikleri.tamamlanmaOrani || 0}</div>
                                 </div>
                                 <div className="flex align-items-center justify-content-center bg-purple-100 border-round" style={{ width: '2.5rem', height: '2.5rem' }}>
-                                    <i className="pi pi-percentage text-purple-500 text-xl" />
+                                    <i className="pi pi-check-circle text-purple-500 text-xl" />
                                 </div>
                             </div>
                         </Card>
@@ -305,19 +305,19 @@ const EgitimRaporlariPage = () => {
                 {/* Grafikler */}
                 <div className="grid">
                     <div className="col-12 md:col-6">
-                        <Card title="Eğitim Durum Dağılımı">
+                        <Card title="Video Eğitim Atama Durumu">
                             <Chart type="doughnut" data={egitimDurumChart} style={{ height: '300px' }} />
                         </Card>
                     </div>
                     <div className="col-12 md:col-6">
-                        <Card title="Aylık Eğitim Trendi">
+                        <Card title="Aylık Video Eğitim Trendi">
                             <Chart type="bar" data={aylikEgitimChart} style={{ height: '300px' }} />
                         </Card>
                     </div>
                 </div>
 
-                {/* Personel Eğitim Özeti */}
-                <Card title="Personel Eğitim Özeti" className="mb-3">
+                {/* Personel Video Eğitim Özeti */}
+                <Card title="Personel Video Eğitim Özeti" className="mb-3">
                     <DataTable 
                         value={personelEgitimOzeti} 
                         loading={loading}
@@ -327,15 +327,15 @@ const EgitimRaporlariPage = () => {
                     >
                         <Column field="personelAd" header="Personel" sortable />
                         <Column field="departman" header="Departman" sortable />
-                        <Column field="toplamEgitim" header="Toplam Eğitim" sortable />
+                        <Column field="toplamVideoEgitim" header="Atanan Video" sortable />
                         <Column field="tamamlanan" header="Tamamlanan" sortable />
-                        <Column field="ortalamaPuan" header="Ort. Puan" body={ortalamaPuanTemplate} sortable />
-                        <Column field="toplamSaat" header="Toplam Saat" sortable />
+                        <Column field="izlemeYuzdesi" header="İzleme %" body={(rowData) => <span>{rowData.izlemeYuzdesi}%</span>} sortable />
+                        <Column field="toplamSure" header="Toplam Süre (dk)" sortable />
                     </DataTable>
                 </Card>
 
-                {/* Departman Bazlı Eğitimler */}
-                <Card title="Departman Bazlı Eğitim Raporu">
+                {/* Departman Bazlı Video Eğitimler */}
+                <Card title="Departman Bazlı Video Eğitim Raporu">
                     <DataTable 
                         value={departmanBazliEgitimler} 
                         loading={loading}
@@ -344,9 +344,9 @@ const EgitimRaporlariPage = () => {
                         responsiveLayout="scroll"
                     >
                         <Column field="departman" header="Departman" sortable />
-                        <Column field="toplamEgitim" header="Eğitim Sayısı" sortable />
+                        <Column field="toplamVideoEgitim" header="Video Sayısı" sortable />
                         <Column field="toplamKatilimci" header="Katılımcı" sortable />
-                        <Column field="ortalamaPuan" header="Ort. Puan" body={ortalamaPuanTemplate} sortable />
+                        <Column field="ortalamaIzlemeSuresi" header="Ort. İzleme (dk)" sortable />
                         <Column field="tamamlanmaOrani" header="Tamamlanma %" body={tamamlanmaOraniTemplate} sortable />
                     </DataTable>
                 </Card>

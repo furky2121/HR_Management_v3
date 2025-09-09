@@ -9,6 +9,10 @@ class PozisyonService {
         return ApiService.get('/pozisyon/aktif');
     }
 
+    async getPozisyonlarAktif() {
+        return ApiService.get('/pozisyon/Aktif');
+    }
+
     async getPozisyonById(id) {
         return ApiService.get(`/pozisyon/${id}`);
     }

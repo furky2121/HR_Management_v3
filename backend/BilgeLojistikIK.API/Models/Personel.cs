@@ -59,6 +59,61 @@ namespace BilgeLojistikIK.API.Models
         [Column("adres")]
         public string? Adres { get; set; }
 
+        [MaxLength(20)]
+        [Column("medeni_hal")]
+        public string? MedeniHal { get; set; }
+
+        [MaxLength(10)]
+        [Column("cinsiyet")]
+        public string? Cinsiyet { get; set; }
+
+        [MaxLength(30)]
+        [Column("askerlik_durumu")]
+        public string? AskerlikDurumu { get; set; }
+
+        [MaxLength(50)]
+        [Column("egitim_durumu")]
+        public string? EgitimDurumu { get; set; }
+
+        [MaxLength(10)]
+        [Column("kan_grubu")]
+        public string? KanGrubu { get; set; }
+
+        [MaxLength(50)]
+        [Column("ehliyet_sinifi")]
+        public string? EhliyetSinifi { get; set; }
+
+        [MaxLength(100)]
+        [Column("anne_adi")]
+        public string? AnneAdi { get; set; }
+
+        [MaxLength(100)]
+        [Column("baba_adi")]
+        public string? BabaAdi { get; set; }
+
+        [MaxLength(100)]
+        [Column("dogum_yeri")]
+        public string? DogumYeri { get; set; }
+
+        [MaxLength(10)]
+        [Column("nufus_il_kod")]
+        public string? NufusIlKod { get; set; }
+
+        [MaxLength(10)]
+        [Column("nufus_ilce_kod")]
+        public string? NufusIlceKod { get; set; }
+
+        [Column("acil_durum_iletisim")]
+        public string? AcilDurumIletisim { get; set; }
+
+        [MaxLength(50)]
+        [Column("banka_hesap_no")]
+        public string? BankaHesapNo { get; set; }
+
+        [MaxLength(34)]
+        [Column("iban_no")]
+        public string? IbanNo { get; set; }
+
         [Column("aktif")]
         public bool Aktif { get; set; } = true;
 

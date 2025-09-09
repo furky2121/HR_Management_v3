@@ -184,7 +184,7 @@ psql -d BilgeLojistikIKdb -f BilgeLojistikIKdb_Setup.sql
 cd backend/BilgeLojistikIK.API
 dotnet restore
 dotnet build
-dotnet run  # http://localhost:5146 adresinde çalışır
+dotnet run  # http://localhost:5000 adresinde çalışır
 ```
 
 ### **🌐 3. Frontend Başlatma**

@@ -14,8 +14,11 @@ const AppMenu = () => {
 
     const fullModel: AppMenuItem[] = [
         {
-            label: 'Ana Sayfa',
-            items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/', screenCode: 'dashboard' }]
+            label: 'ANA MENÜ',
+            items: [
+                { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/', screenCode: 'dashboard' },
+                { label: 'Bana Atanan Eğitimler', icon: 'pi pi-fw pi-play-circle', to: '/bana-atanan-egitimler', screenCode: 'egitimler' }
+            ]
         },
         {
             label: 'İnsan Kaynakları',
@@ -50,7 +53,8 @@ const AppMenu = () => {
                     label: 'Eğitim Yönetimi',
                     icon: 'pi pi-fw pi-graduation-cap',
                     items: [
-                        { label: 'Eğitim Programları', icon: 'pi pi-fw pi-book', to: '/egitimler', screenCode: 'egitimler' },
+                        { label: 'Video Eğitimler', icon: 'pi pi-fw pi-play', to: '/egitimler', screenCode: 'egitimler' },
+                        { label: 'Kategori Yönetimi', icon: 'pi pi-fw pi-th-large', to: '/kategori-yonetimi', screenCode: 'kategori-yonetimi' },
                         { label: 'Eğitim Katılımları', icon: 'pi pi-fw pi-users', to: '/egitim-katilimlari', screenCode: 'egitim-katilimlari' },
                         { label: 'Eğitim Raporları', icon: 'pi pi-fw pi-chart-bar', to: '/egitim-raporlari', screenCode: 'egitim-raporlari' },
                         { label: 'Sertifikalar', icon: 'pi pi-fw pi-verified', to: '/sertifikalar', screenCode: 'sertifikalar' }
@@ -65,6 +69,17 @@ const AppMenu = () => {
                         { label: 'Personel Zimmet İşlemleri', icon: 'pi pi-fw pi-user-plus', to: '/personel-zimmet', screenCode: 'personel-zimmet' }
                     ]
                 },
+                { label: 'Personel Giriş-Çıkış', icon: 'pi pi-fw pi-clock', to: '/personel-giris-cikis', screenCode: 'personel-giris-cikis' }
+            ]
+        },
+        {
+            label: 'Diğer İşlemler',
+            icon: 'pi pi-fw pi-briefcase',
+            items: [
+                { label: 'Avans Talepleri', icon: 'pi pi-fw pi-dollar', to: '/avans-talepleri', screenCode: 'avans-talepleri' },
+                { label: 'Avans Onay', icon: 'pi pi-fw pi-check-circle', to: '/avans-onay', screenCode: 'avans-onay' },
+                { label: 'İstifa İşlemleri', icon: 'pi pi-fw pi-sign-out', to: '/istifa-islemleri', screenCode: 'istifa-islemleri' },
+                { label: 'İstifa Onay', icon: 'pi pi-fw pi-times-circle', to: '/istifa-onay', screenCode: 'istifa-onay' }
             ]
         },
         {

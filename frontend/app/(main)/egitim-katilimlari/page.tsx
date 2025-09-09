@@ -9,70 +9,79 @@ import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
 import { Calendar } from 'primereact/calendar';
-import { InputNumber } from 'primereact/inputnumber';
+import { MultiSelect } from 'primereact/multiselect';
 import { Tag } from 'primereact/tag';
-import egitimService from '../../../src/services/egitimService';
+import { ProgressBar } from 'primereact/progressbar';
+import videoEgitimService from '../../../src/services/videoEgitimService';
 import personelService from '../../../src/services/personelService';
+import departmanService from '../../../src/services/departmanService';
+import pozisyonService from '../../../src/services/pozisyonService';
 
-interface PersonelEgitimi {
+interface VideoEgitimAtama {
     id?: number;
-    personelId: number;
-    egitimId: number;
-    katilimTarihi: Date | null;
-    tamamlamaTarihi: Date | null;
-    puan: number | null;
-    sertifikaNo: string;
+    videoEgitimAd?: string;
+    personelAd?: string;
+    departmanAd?: string;
+    pozisyonAd?: string;
+    atayanPersonelAd?: string;
+    atamaTarihi: Date;
     durum: string;
-    personelAdSoyad?: string;
-    egitimAdi?: string;
+    not?: string;
+    // Eski interface alanları - eski atama dialogu için
+    personelId?: number;
+    videoEgitimId?: number;
+    atamaYapan?: string;
+    baslangicTarihi?: Date | null;
+    bitisTarihi?: Date | null;
 }
 
 const EgitimKatilimlariPage = () => {
-    const [katilimlar, setKatilimlar] = useState<PersonelEgitimi[]>([]);
+    const [atamalar, setAtamalar] = useState<VideoEgitimAtama[]>([]);
     const [loading, setLoading] = useState(true);
-    const [katilimDialog, setKatilimDialog] = useState(false);
-    const [deleteKatilimDialog, setDeleteKatilimDialog] = useState(false);
-    const [katilim, setKatilim] = useState<PersonelEgitimi>({
-        personelId: 0,
-        egitimId: 0,
-        katilimTarihi: null,
-        tamamlamaTarihi: null,
-        puan: null,
-        sertifikaNo: '',
-        durum: 'Planlandı'
-    });
+    const [deleteAtamaDialog, setDeleteAtamaDialog] = useState(false);
+    const [topluAtamaDialog, setTopluAtamaDialog] = useState(false);
+    const [selectedAtama, setSelectedAtama] = useState<VideoEgitimAtama | null>(null);
     const [submitted, setSubmitted] = useState(false);
     const [globalFilter, setGlobalFilter] = useState('');
     const [personeller, setPersoneller] = useState<any[]>([]);
-    const [egitimler, setEgitimler] = useState<any[]>([]);
+    const [videoEgitimler, setVideoEgitimler] = useState<any[]>([]);
+    const [departmanlar, setDepartmanlar] = useState<any[]>([]);
+    const [pozisyonlar, setPozisyonlar] = useState<any[]>([]);
+    const [selectedVideoEgitimler, setSelectedVideoEgitimler] = useState<any[]>([]);
+    const [selectedPersoneller, setSelectedPersoneller] = useState<any[]>([]);
+    const [selectedDepartmanlar, setSelectedDepartmanlar] = useState<any[]>([]);
+    const [selectedPozisyonlar, setSelectedPozisyonlar] = useState<any[]>([]);
     const toast = useRef<Toast>(null);
-    const dt = useRef<DataTable<PersonelEgitimi[]>>(null);
+    const dt = useRef<DataTable<VideoEgitimAtama[]>>(null);
 
     const durumOptions = [
-        { label: 'Planlandı', value: 'Planlandı' },
-        { label: 'Devam Ediyor', value: 'Devam Ediyor' },
+        { label: 'Atandı', value: 'Atandı' },
+        { label: 'Başlanmadı', value: 'Başlanmadı' },
+        { label: 'İzleniyor', value: 'İzleniyor' },
         { label: 'Tamamlandı', value: 'Tamamlandı' },
         { label: 'İptal', value: 'İptal' }
     ];
 
     useEffect(() => {
-        loadKatilimlar();
+        loadAtamalar();
         loadPersoneller();
-        loadEgitimler();
+        loadVideoEgitimler();
+        loadDepartmanlar();
+        loadPozisyonlar();
     }, []);
 
-    const loadKatilimlar = async () => {
+    const loadAtamalar = async () => {
         try {
             setLoading(true);
-            const response = await egitimService.getPersonelEgitimleri();
-            if (response.data.success) {
-                setKatilimlar(response.data.data);
+            const response = await videoEgitimService.getAtamalar();
+            if (response.success) {
+                setAtamalar(response.data);
             }
         } catch (error) {
             toast.current?.show({ 
                 severity: 'error', 
                 summary: 'Hata', 
-                detail: 'Katılımlar yüklenirken hata oluştu' 
+                detail: 'Atamalar yüklenirken hata oluştu' 
             });
         } finally {
             setLoading(false);
@@ -81,9 +90,9 @@ const EgitimKatilimlariPage = () => {
 
     const loadPersoneller = async () => {
         try {
-            const response = await personelService.getAllPersoneller();
-            if (response.data.success) {
-                setPersoneller(response.data.data.map((p: any) => ({
+            const response = await personelService.getPersonellerAktif();
+            if (response.success) {
+                setPersoneller(response.data.map((p: any) => ({
                     label: `${p.ad} ${p.soyad}`,
                     value: p.id
                 })));
@@ -93,99 +102,71 @@ const EgitimKatilimlariPage = () => {
         }
     };
 
-    const loadEgitimler = async () => {
+    const loadVideoEgitimler = async () => {
         try {
-            const response = await egitimService.getEgitimler();
-            if (response.data.success) {
-                setEgitimler(response.data.data.map((e: any) => ({
-                    label: e.ad,
+            const response = await videoEgitimService.getVideoEgitimler();
+            if (response.success) {
+                setVideoEgitimler(response.data.map((e: any) => ({
+                    label: e.baslik,
                     value: e.id
                 })));
             }
         } catch (error) {
-            console.error('Eğitimler yüklenirken hata:', error);
+            console.error('Video eğitimler yüklenirken hata:', error);
         }
     };
 
-    const openNew = () => {
-        setKatilim({
-            personelId: 0,
-            egitimId: 0,
-            katilimTarihi: null,
-            tamamlamaTarihi: null,
-            puan: null,
-            sertifikaNo: '',
-            durum: 'Planlandı'
-        });
-        setSubmitted(false);
-        setKatilimDialog(true);
-    };
-
-    const hideDialog = () => {
-        setSubmitted(false);
-        setKatilimDialog(false);
-    };
-
-    const hideDeleteKatilimDialog = () => {
-        setDeleteKatilimDialog(false);
-    };
-
-    const saveKatilim = async () => {
-        setSubmitted(true);
-
-        if (katilim.personelId && katilim.egitimId) {
-            try {
-                let response;
-                if (katilim.id) {
-                    response = await egitimService.updatePersonelEgitimi(katilim.id, katilim);
-                } else {
-                    response = await egitimService.createPersonelEgitimi(katilim);
-                }
-
-                if (response.data.success) {
-                    toast.current?.show({ 
-                        severity: 'success', 
-                        summary: 'Başarılı', 
-                        detail: katilim.id ? 'Katılım güncellendi' : 'Katılım eklendi' 
-                    });
-                    loadKatilimlar();
-                    setKatilimDialog(false);
-                }
-            } catch (error: any) {
-                toast.current?.show({ 
-                    severity: 'error', 
-                    summary: 'Hata', 
-                    detail: error.response?.data?.message || 'İşlem başarısız' 
-                });
-            }
-        }
-    };
-
-    const editKatilim = (katilim: PersonelEgitimi) => {
-        setKatilim({
-            ...katilim,
-            katilimTarihi: katilim.katilimTarihi ? new Date(katilim.katilimTarihi) : null,
-            tamamlamaTarihi: katilim.tamamlamaTarihi ? new Date(katilim.tamamlamaTarihi) : null
-        });
-        setKatilimDialog(true);
-    };
-
-    const confirmDeleteKatilim = (katilim: PersonelEgitimi) => {
-        setKatilim(katilim);
-        setDeleteKatilimDialog(true);
-    };
-
-    const deleteKatilim = async () => {
+    const loadDepartmanlar = async () => {
         try {
-            const response = await egitimService.deletePersonelEgitimi(katilim.id!);
-            if (response.data.success) {
+            const response = await departmanService.getDepartmanlarAktif();
+            if (response.success) {
+                setDepartmanlar(response.data.map((d: any) => ({
+                    label: d.ad,
+                    value: d.id
+                })));
+            }
+        } catch (error) {
+            console.error('Departmanlar yüklenirken hata:', error);
+        }
+    };
+
+    const loadPozisyonlar = async () => {
+        try {
+            const response = await pozisyonService.getPozisyonlarAktif();
+            if (response.success) {
+                setPozisyonlar(response.data.map((p: any) => ({
+                    label: `${p.ad} (${p.departmanAd})`,
+                    value: p.id
+                })));
+            }
+        } catch (error) {
+            console.error('Pozisyonlar yüklenirken hata:', error);
+        }
+    };
+
+
+    const hideDeleteAtamaDialog = () => {
+        setDeleteAtamaDialog(false);
+    };
+
+    const confirmDeleteAtama = (atama: VideoEgitimAtama) => {
+        setSelectedAtama(atama);
+        setDeleteAtamaDialog(true);
+    };
+
+    const deleteAtama = async () => {
+        if (!selectedAtama?.id) return;
+        
+        try {
+            const response = await videoEgitimService.deleteAtama(selectedAtama.id);
+            if (response.success) {
                 toast.current?.show({ 
                     severity: 'success', 
                     summary: 'Başarılı', 
-                    detail: 'Katılım silindi' 
+                    detail: 'Atama silindi' 
                 });
-                loadKatilimlar();
-                setDeleteKatilimDialog(false);
+                loadAtamalar();
+                setDeleteAtamaDialog(false);
             }
         } catch (error) {
             toast.current?.show({ 
@@ -200,10 +181,66 @@ const EgitimKatilimlariPage = () => {
         dt.current?.exportCSV();
     };
 
+    const openTopluAtama = () => {
+        setSelectedVideoEgitimler([]);
+        setSelectedPersoneller([]);
+        setSelectedDepartmanlar([]);
+        setSelectedPozisyonlar([]);
+        setTopluAtamaDialog(true);
+    };
+
+    const saveTopluAtama = async () => {
+        if (selectedVideoEgitimler.length === 0) {
+            toast.current?.show({ 
+                severity: 'warn', 
+                summary: 'Uyarı', 
+                detail: 'En az bir video eğitim seçmelisiniz' 
+            });
+            return;
+        }
+
+        if (selectedPersoneller.length === 0 && selectedDepartmanlar.length === 0 && selectedPozisyonlar.length === 0) {
+            toast.current?.show({ 
+                severity: 'warn', 
+                summary: 'Uyarı', 
+                detail: 'Personel, departman veya pozisyon seçmelisiniz' 
+            });
+            return;
+        }
+
+        try {
+            // Toplu atama için tek bir API çağrısı yap
+            const topluAtamaData = {
+                videoEgitimIds: selectedVideoEgitimler,
+                personelIds: selectedPersoneller,
+                departmanIds: selectedDepartmanlar,
+                pozisyonIds: selectedPozisyonlar,
+                not: 'Toplu atama'
+            };
+
+            const response = await videoEgitimService.topluAtamaYap(topluAtamaData);
+            
+            toast.current?.show({ 
+                severity: 'success', 
+                summary: 'Başarılı', 
+                detail: `${selectedVideoEgitimler.length} video eğitim için toplu atama tamamlandı` 
+            });
+            
+            loadAtamalar();
+            setTopluAtamaDialog(false);
+        } catch (error: any) {
+            toast.current?.show({ 
+                severity: 'error', 
+                summary: 'Hata', 
+                detail: error.response?.data?.message || 'Toplu atama başarısız' 
+            });
+        }
+    };
+
     const leftToolbarTemplate = () => {
         return (
             <React.Fragment>
-                <Button label="Yeni" icon="pi pi-plus" severity="success" onClick={openNew} />
+                <Button label="Toplu Atama" icon="pi pi-users" severity="success" onClick={openTopluAtama} />
             </React.Fragment>
         );
     };
@@ -216,21 +253,22 @@ const EgitimKatilimlariPage = () => {
         );
     };
 
-    const actionBodyTemplate = (rowData: PersonelEgitimi) => {
+    const actionBodyTemplate = (rowData: VideoEgitimAtama) => {
         return (
             <React.Fragment>
-                <Button icon="pi pi-pencil" rounded outlined className="mr-2" onClick={() => editKatilim(rowData)} />
-                <Button icon="pi pi-trash" rounded outlined severity="danger" onClick={() => confirmDeleteKatilim(rowData)} />
+                <Button icon="pi pi-pencil" rounded outlined className="mr-2" onClick={() => editAtama(rowData)} />
+                <Button icon="pi pi-trash" rounded outlined severity="danger" onClick={() => confirmDeleteAtama(rowData)} />
             </React.Fragment>
         );
     };
 
-    const durumBodyTemplate = (rowData: PersonelEgitimi) => {
+    const durumBodyTemplate = (rowData: VideoEgitimAtama) => {
         const getSeverity = (durum: string) => {
             switch (durum) {
                 case 'Tamamlandı': return 'success';
-                case 'Devam Ediyor': return 'info';
-                case 'Planlandı': return 'warning';
+                case 'İzleniyor': return 'info';
+                case 'Atandı': return 'warning';
+                case 'Başlanmadı': return 'secondary';
                 case 'İptal': return 'danger';
                 default: return null;
             }
@@ -238,25 +276,10 @@ const EgitimKatilimlariPage = () => {
         return <Tag value={rowData.durum} severity={getSeverity(rowData.durum)} />;
     };
 
-    const puanBodyTemplate = (rowData: PersonelEgitimi) => {
-        if (!rowData.puan) return '-';
-        const getSeverity = (puan: number) => {
-            if (puan >= 85) return 'success';
-            if (puan >= 60) return 'warning';
-            return 'danger';
-        };
-        return <Tag value={`${rowData.puan}`} severity={getSeverity(rowData.puan)} />;
-    };
-
-    const dateBodyTemplate = (rowData: PersonelEgitimi, field: 'katilimTarihi' | 'tamamlamaTarihi') => {
-        const date = rowData[field];
-        if (!date) return '-';
-        return new Date(date).toLocaleDateString('tr-TR');
-    };
 
     const header = (
         <div className="flex flex-wrap gap-2 align-items-center justify-content-between">
-            <h4 className="m-0">Eğitim Katılımları</h4>
+            <h4 className="m-0">Video Eğitim Atamaları</h4>
             <span className="p-input-icon-left">
                 <i className="pi pi-search" />
                 <InputText 
@@ -277,7 +300,7 @@ const EgitimKatilimlariPage = () => {
 
                     <DataTable 
                         ref={dt}
-                        value={katilimlar} 
+                        value={atamalar} 
                         dataKey="id"
                         loading={loading}
                         paginator 
@@ -289,125 +312,124 @@ const EgitimKatilimlariPage = () => {
                         header={header}
                         responsiveLayout="scroll"
                     >
-                        <Column field="personelAdSoyad" header="Personel" sortable />
-                        <Column field="egitimAdi" header="Eğitim" sortable />
-                        <Column field="katilimTarihi" header="Başlangıç" body={(rowData) => dateBodyTemplate(rowData, 'katilimTarihi')} sortable />
-                        <Column field="tamamlamaTarihi" header="Bitiş" body={(rowData) => dateBodyTemplate(rowData, 'tamamlamaTarihi')} sortable />
+                        <Column field="videoEgitimAd" header="Video Eğitim" sortable />
+                        <Column field="personelAd" header="Personel" sortable />
+                        <Column field="departmanAd" header="Departman" sortable />
+                        <Column field="pozisyonAd" header="Pozisyon" sortable />
+                        <Column field="atayanPersonelAd" header="Atayan" sortable />
+                        <Column field="atamaTarihi" header="Atama Tarihi" body={(rowData) => new Date(rowData.atamaTarihi).toLocaleDateString('tr-TR')} sortable />
                         <Column field="durum" header="Durum" body={durumBodyTemplate} sortable />
-                        <Column field="puan" header="Puan" body={puanBodyTemplate} sortable />
-                        <Column field="sertifikaNo" header="Sertifika No" sortable />
+                        <Column field="not" header="Not" sortable />
                         <Column body={actionBodyTemplate} exportable={false} style={{ minWidth: '8rem' }} />
                     </DataTable>
 
-                    <Dialog 
-                        visible={katilimDialog} 
-                        style={{ width: '450px' }} 
-                        header="Eğitim Katılımı" 
-                        modal 
-                        className="p-fluid" 
-                        footer={
-                            <>
-                                <Button label="İptal" icon="pi pi-times" outlined onClick={hideDialog} />
-                                <Button label="Kaydet" icon="pi pi-check" onClick={saveKatilim} />
-                            </>
-                        }
-                        onHide={hideDialog}
-                    >
-                        <div className="field">
-                            <label htmlFor="personel">Personel</label>
-                            <Dropdown 
-                                id="personel" 
-                                value={katilim.personelId} 
-                                options={personeller}
-                                onChange={(e) => setKatilim({ ...katilim, personelId: e.value })}
-                                placeholder="Personel Seçiniz"
-                                className={submitted && !katilim.personelId ? 'p-invalid' : ''}
-                            />
-                            {submitted && !katilim.personelId && <small className="p-error">Personel gerekli.</small>}
-                        </div>
-
-                        <div className="field">
-                            <label htmlFor="egitim">Eğitim</label>
-                            <Dropdown 
-                                id="egitim" 
-                                value={katilim.egitimId} 
-                                options={egitimler}
-                                onChange={(e) => setKatilim({ ...katilim, egitimId: e.value })}
-                                placeholder="Eğitim Seçiniz"
-                                className={submitted && !katilim.egitimId ? 'p-invalid' : ''}
-                            />
-                            {submitted && !katilim.egitimId && <small className="p-error">Eğitim gerekli.</small>}
-                        </div>
-
-                        <div className="field">
-                            <label htmlFor="katilimTarihi">Başlangıç Tarihi</label>
-                            <Calendar 
-                                id="katilimTarihi" 
-                                value={katilim.katilimTarihi} 
-                                onChange={(e) => setKatilim({ ...katilim, katilimTarihi: e.value || null })}
-                                dateFormat="dd/mm/yy"
-                                showIcon
-                            />
-                        </div>
-
-                        <div className="field">
-                            <label htmlFor="tamamlamaTarihi">Bitiş Tarihi</label>
-                            <Calendar 
-                                id="tamamlamaTarihi" 
-                                value={katilim.tamamlamaTarihi} 
-                                onChange={(e) => setKatilim({ ...katilim, tamamlamaTarihi: e.value || null })}
-                                dateFormat="dd/mm/yy"
-                                showIcon
-                            />
-                        </div>
-
-                        <div className="field">
-                            <label htmlFor="durum">Durum</label>
-                            <Dropdown 
-                                id="durum" 
-                                value={katilim.durum} 
-                                options={durumOptions}
-                                onChange={(e) => setKatilim({ ...katilim, durum: e.value })}
-                            />
-                        </div>
-
-                        <div className="field">
-                            <label htmlFor="puan">Puan (0-100)</label>
-                            <InputNumber 
-                                id="puan" 
-                                value={katilim.puan} 
-                                onChange={(e) => setKatilim({ ...katilim, puan: e.value })}
-                                min={0}
-                                max={100}
-                            />
-                        </div>
-
-                        <div className="field">
-                            <label htmlFor="sertifikaNo">Sertifika No</label>
-                            <InputText 
-                                id="sertifikaNo" 
-                                value={katilim.sertifikaNo} 
-                                onChange={(e) => setKatilim({ ...katilim, sertifikaNo: e.target.value })}
-                            />
-                        </div>
-                    </Dialog>
 
                     <Dialog 
-                        visible={deleteKatilimDialog} 
+                        visible={deleteAtamaDialog} 
                         style={{ width: '450px' }} 
                         header="Onayla" 
                         modal 
                         footer={
                             <>
-                                <Button label="Hayır" icon="pi pi-times" outlined onClick={hideDeleteKatilimDialog} />
-                                <Button label="Evet" icon="pi pi-check" severity="danger" onClick={deleteKatilim} />
+                                <Button label="Hayır" icon="pi pi-times" outlined onClick={hideDeleteAtamaDialog} />
+                                <Button label="Evet" icon="pi pi-check" severity="danger" onClick={deleteAtama} />
                             </>
                         }
-                        onHide={hideDeleteKatilimDialog}
+                        onHide={hideDeleteAtamaDialog}
                     >
                         <div className="confirmation-content">
                             <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
-                            <span>Bu katılım kaydını silmek istediğinizden emin misiniz?</span>
+                            <span>Bu video eğitim atamasını silmek istediğinizden emin misiniz?</span>
+                        </div>
+                    </Dialog>
+
+                    {/* Toplu Atama Dialog */}
+                    <Dialog 
+                        visible={topluAtamaDialog} 
+                        style={{ width: '90vw', maxWidth: '800px' }} 
+                        header="🎯 Toplu Video Eğitim Atama" 
+                        modal 
+                        className="p-fluid"
+                        footer={
+                            <>
+                                <Button label="İptal" icon="pi pi-times" outlined onClick={() => setTopluAtamaDialog(false)} />
+                                <Button label="Toplu Ata" icon="pi pi-check" onClick={saveTopluAtama} />
+                            </>
+                        }
+                        onHide={() => setTopluAtamaDialog(false)}
+                        breakpoints={{'960px': '75vw', '641px': '100vw'}}
+                    >
+                        <div className="formgrid grid">
+                            <div className="col-12">
+                                <h5 className="text-900 mb-3">📚 Video Eğitim Seçimi</h5>
+                            </div>
+                            
+                            <div className="col-12">
+                                <label className="block text-900 font-medium mb-2">
+                                    Video Eğitimler *
+                                </label>
+                                <MultiSelect 
+                                    value={selectedVideoEgitimler} 
+                                    options={videoEgitimler} 
+                                    onChange={(e) => setSelectedVideoEgitimler(e.value)} 
+                                    placeholder="Video eğitimler seçin..."
+                                    filter
+                                    showClear
+                                    display="chip"
+                                    className="w-full"
+                                />
+                            </div>
+
+                            <div className="col-12">
+                                <h5 className="text-900 mb-3">👥 Hedef Seçimi</h5>
+                                <p className="text-600 text-sm mb-3">En az bir hedef grubu seçmelisiniz</p>
+                            </div>
+                            
+                            <div className="col-12">
+                                <label className="block text-900 font-medium mb-2">
+                                    Kişi Bazlı Atama
+                                </label>
+                                <MultiSelect 
+                                    value={selectedPersoneller} 
+                                    options={personeller} 
+                                    onChange={(e) => setSelectedPersoneller(e.value)} 
+                                    placeholder="Personel seçin..."
+                                    filter
+                                    showClear
+                                    display="chip"
+                                    className="w-full"
+                                />
+                            </div>
+                            
+                            <div className="col-12 md:col-6">
+                                <label className="block text-900 font-medium mb-2">
+                                    Departman Bazlı Atama
+                                </label>
+                                <MultiSelect 
+                                    value={selectedDepartmanlar} 
+                                    options={departmanlar} 
+                                    onChange={(e) => setSelectedDepartmanlar(e.value)} 
+                                    placeholder="Departman seçin..."
+                                    showClear
+                                    display="chip"
+                                    className="w-full"
+                                />
+                            </div>
+                            
+                            <div className="col-12 md:col-6">
+                                <label className="block text-900 font-medium mb-2">
+                                    Pozisyon Bazlı Atama
+                                </label>
+                                <MultiSelect 
+                                    value={selectedPozisyonlar} 
+                                    options={pozisyonlar} 
+                                    onChange={(e) => setSelectedPozisyonlar(e.value)} 
+                                    placeholder="Pozisyon seçin..."
+                                    showClear
+                                    display="chip"
+                                    className="w-full"
+                                />
+                            </div>
                         </div>
                     </Dialog>
                 </div>

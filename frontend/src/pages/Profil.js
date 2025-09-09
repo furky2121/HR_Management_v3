@@ -160,18 +160,20 @@ const Profil = () => {
             const data = await response.json();
             
             if (data.success) {
-                // Avatar cache'ini temizle
-                fileUploadService.refreshAvatarCache();
-                
-                // localStorage'daki kullanıcı bilgisini güncelle
+                // localStorage'daki kullanıcı bilgisini güncelle (küçük harfle)
                 const currentUser = authService.getUser();
                 if (currentUser && currentUser.personel) {
-                    currentUser.personel.fotografUrl = data.data.FotografUrl;
+                    // Backend'den gelen yeni fotoğraf URL'sini al
+                    const yeniFotografUrl = data.data?.fotografUrl || data.data?.FotografUrl || data.fotografUrl;
+                    currentUser.personel.fotografUrl = yeniFotografUrl;
                     authService.setUser(currentUser);
+                    
+                    // Avatar cache'ini temizle ve topbar'ı yenile
+                    fileUploadService.refreshAvatarCache();
                 }
                 
                 toast.current?.show({ severity: 'success', summary: 'Başarılı', detail: data.message });
-                loadKullaniciProfil();
+                await loadKullaniciProfil();
                 setFotografDialog(false);
             } else {
                 toast.current?.show({ severity: 'error', summary: 'Hata', detail: data.message });

@@ -45,6 +45,10 @@ namespace BilgeLojistikIK.API.Models
         [Column("onay_notu")]
         public string? OnayNotu { get; set; }
 
+        [MaxLength(100)]
+        [Column("gorev_yeri")]
+        public string? GorevYeri { get; set; }
+
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

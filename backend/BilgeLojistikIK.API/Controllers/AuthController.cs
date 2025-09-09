@@ -98,11 +98,19 @@ namespace BilgeLojistikIK.API.Controllers
                                 kullanici.Personel.Soyad,
                                 AdSoyad = kullanici.Personel.Ad + " " + kullanici.Personel.Soyad,
                                 kullanici.Personel.Email,
+                                kullanici.Personel.TcKimlik,
+                                kullanici.Personel.Telefon,
+                                kullanici.Personel.IseBaslamaTarihi,
                                 kullanici.Personel.FotografUrl,
                                 Pozisyon = new
                                 {
+                                    kullanici.Personel.Pozisyon.Id,
                                     kullanici.Personel.Pozisyon.Ad,
-                                    Departman = kullanici.Personel.Pozisyon.Departman.Ad,
+                                    Departman = new
+                                    {
+                                        kullanici.Personel.Pozisyon.Departman.Id,
+                                        kullanici.Personel.Pozisyon.Departman.Ad
+                                    },
                                     Kademe = new
                                     {
                                         kullanici.Personel.Pozisyon.Kademe.Id,

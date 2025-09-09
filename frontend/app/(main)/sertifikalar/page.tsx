@@ -11,30 +11,32 @@ import { Tag } from 'primereact/tag';
 import { Calendar } from 'primereact/calendar';
 import { Card } from 'primereact/card';
 import { Divider } from 'primereact/divider';
-import egitimService from '../../../src/services/egitimService';
+import videoEgitimService from '../../../src/services/videoEgitimService';
 
-interface Sertifika {
+interface VideoEgitimSertifika {
     id?: number;
     personelId: number;
     personelAdSoyad?: string;
-    egitimId: number;
-    egitimAdi?: string;
+    videoEgitimId: number;
+    videoEgitimBaslik?: string;
+    kategoriAd?: string;
     sertifikaNo: string;
     verilisTarihi: Date | null;
     gecerlilikTarihi: Date | null;
     kurum: string;
-    puan: number;
+    izlemeYuzdesi: number;
+    toplamSure: number;
     durum: string;
 }
 
 const SertifikalarPage = () => {
-    const [sertifikalar, setSertifikalar] = useState<Sertifika[]>([]);
+    const [sertifikalar, setSertifikalar] = useState<VideoEgitimSertifika[]>([]);
     const [loading, setLoading] = useState(true);
     const [sertifikaDialog, setSertifikaDialog] = useState(false);
-    const [selectedSertifika, setSelectedSertifika] = useState<Sertifika | null>(null);
+    const [selectedSertifika, setSelectedSertifika] = useState<VideoEgitimSertifika | null>(null);
     const [globalFilter, setGlobalFilter] = useState('');
     const toast = useRef<Toast>(null);
-    const dt = useRef<DataTable<Sertifika[]>>(null);
+    const dt = useRef<DataTable<VideoEgitimSertifika[]>>(null);
 
     useEffect(() => {
         loadSertifikalar();
@@ -43,86 +45,102 @@ const SertifikalarPage = () => {
     const loadSertifikalar = async () => {
         try {
             setLoading(true);
-            // Örnek veri - gerçek API'den gelecek
-            setSertifikalar([
-                {
-                    id: 1,
-                    personelId: 1,
-                    personelAdSoyad: 'Ahmet Yılmaz',
-                    egitimId: 1,
-                    egitimAdi: 'İleri Excel Eğitimi',
-                    sertifikaNo: 'CERT-2024-001',
-                    verilisTarihi: new Date('2024-01-15'),
-                    gecerlilikTarihi: new Date('2026-01-15'),
-                    kurum: 'Microsoft',
-                    puan: 92,
-                    durum: 'Geçerli'
-                },
-                {
-                    id: 2,
-                    personelId: 2,
-                    personelAdSoyad: 'Ayşe Demir',
-                    egitimId: 2,
-                    egitimAdi: 'Proje Yönetimi',
-                    sertifikaNo: 'CERT-2024-002',
-                    verilisTarihi: new Date('2024-02-20'),
-                    gecerlilikTarihi: new Date('2025-02-20'),
-                    kurum: 'PMI',
-                    puan: 88,
-                    durum: 'Geçerli'
-                },
-                {
-                    id: 3,
-                    personelId: 3,
-                    personelAdSoyad: 'Mehmet Kaya',
-                    egitimId: 3,
-                    egitimAdi: 'İş Güvenliği Uzmanı',
-                    sertifikaNo: 'CERT-2023-045',
-                    verilisTarihi: new Date('2023-06-10'),
-                    gecerlilikTarihi: new Date('2024-06-10'),
-                    kurum: 'ÇSGB',
-                    puan: 75,
-                    durum: 'Süresi Dolmuş'
-                },
-                {
-                    id: 4,
-                    personelId: 4,
-                    personelAdSoyad: 'Fatma Öz',
-                    egitimId: 4,
-                    egitimAdi: 'ISO 9001 İç Denetçi',
-                    sertifikaNo: 'CERT-2024-003',
-                    verilisTarihi: new Date('2024-03-05'),
-                    gecerlilikTarihi: new Date('2027-03-05'),
-                    kurum: 'TÜV',
-                    puan: 95,
-                    durum: 'Geçerli'
-                },
-                {
-                    id: 5,
-                    personelId: 5,
-                    personelAdSoyad: 'Ali Veli',
-                    egitimId: 5,
-                    egitimAdi: 'Python Programlama',
-                    sertifikaNo: 'CERT-2024-004',
-                    verilisTarihi: new Date('2024-04-12'),
-                    gecerlilikTarihi: null,
-                    kurum: 'Coursera',
-                    puan: 86,
-                    durum: 'Geçerli'
-                }
-            ]);
+            // Video eğitim sertifikaları - gerçek API'den gelecek
+            const response = await videoEgitimService.getSertifikalar();
+            if (response.success) {
+                setSertifikalar(response.data);
+            } else {
+                // Örnek video eğitim sertifikaları
+                setSertifikalar([
+                    {
+                        id: 1,
+                        personelId: 1,
+                        personelAdSoyad: 'Ahmet Yılmaz',
+                        videoEgitimId: 1,
+                        videoEgitimBaslik: 'Excel İleri Seviye Teknikleri',
+                        kategoriAd: 'Ofis Programları',
+                        sertifikaNo: 'VE-CERT-2024-001',
+                        verilisTarihi: new Date('2024-01-15'),
+                        gecerlilikTarihi: new Date('2026-01-15'),
+                        kurum: 'BilgeLojistik Eğitim Merkezi',
+                        izlemeYuzdesi: 100,
+                        toplamSure: 180,
+                        durum: 'Geçerli'
+                    },
+                    {
+                        id: 2,
+                        personelId: 2,
+                        personelAdSoyad: 'Ayşe Demir',
+                        videoEgitimId: 2,
+                        videoEgitimBaslik: 'Proje Yönetimi Temelleri',
+                        kategoriAd: 'Yönetim',
+                        sertifikaNo: 'VE-CERT-2024-002',
+                        verilisTarihi: new Date('2024-02-20'),
+                        gecerlilikTarihi: new Date('2025-02-20'),
+                        kurum: 'BilgeLojistik Eğitim Merkezi',
+                        izlemeYuzdesi: 100,
+                        toplamSure: 240,
+                        durum: 'Geçerli'
+                    },
+                    {
+                        id: 3,
+                        personelId: 3,
+                        personelAdSoyad: 'Mehmet Kaya',
+                        videoEgitimId: 3,
+                        videoEgitimBaslik: 'İş Güvenliği Eğitimi',
+                        kategoriAd: 'Güvenlik',
+                        sertifikaNo: 'VE-CERT-2023-045',
+                        verilisTarihi: new Date('2023-06-10'),
+                        gecerlilikTarihi: new Date('2024-06-10'),
+                        kurum: 'BilgeLojistik Eğitim Merkezi',
+                        izlemeYuzdesi: 85,
+                        toplamSure: 120,
+                        durum: 'Süresi Dolmuş'
+                    },
+                    {
+                        id: 4,
+                        personelId: 4,
+                        personelAdSoyad: 'Fatma Öz',
+                        videoEgitimId: 4,
+                        videoEgitimBaslik: 'Kalite Yönetim Sistemi',
+                        kategoriAd: 'Kalite',
+                        sertifikaNo: 'VE-CERT-2024-003',
+                        verilisTarihi: new Date('2024-03-05'),
+                        gecerlilikTarihi: new Date('2027-03-05'),
+                        kurum: 'BilgeLojistik Eğitim Merkezi',
+                        izlemeYuzdesi: 100,
+                        toplamSure: 300,
+                        durum: 'Geçerli'
+                    },
+                    {
+                        id: 5,
+                        personelId: 5,
+                        personelAdSoyad: 'Ali Veli',
+                        videoEgitimId: 5,
+                        videoEgitimBaslik: 'Temel Python Programlama',
+                        kategoriAd: 'Teknoloji',
+                        sertifikaNo: 'VE-CERT-2024-004',
+                        verilisTarihi: new Date('2024-04-12'),
+                        gecerlilikTarihi: null,
+                        kurum: 'BilgeLojistik Eğitim Merkezi',
+                        izlemeYuzdesi: 95,
+                        toplamSure: 480,
+                        durum: 'Geçerli'
+                    }
+                ]);
+            }
         } catch (error) {
             toast.current?.show({ 
                 severity: 'error', 
                 summary: 'Hata', 
-                detail: 'Sertifikalar yüklenirken hata oluştu' 
+                detail: 'Video eğitim sertifikaları yüklenirken hata oluştu' 
             });
         } finally {
             setLoading(false);
         }
     };
 
-    const viewSertifika = (sertifika: Sertifika) => {
+    const viewSertifika = (sertifika: VideoEgitimSertifika) => {
         setSelectedSertifika(sertifika);
         setSertifikaDialog(true);
     };
@@ -161,7 +179,7 @@ const SertifikalarPage = () => {
         );
     };
 
-    const actionBodyTemplate = (rowData: Sertifika) => {
+    const actionBodyTemplate = (rowData: VideoEgitimSertifika) => {
         return (
             <React.Fragment>
                 <Button 
@@ -184,7 +202,7 @@ const SertifikalarPage = () => {
         );
     };
 
-    const durumBodyTemplate = (rowData: Sertifika) => {
+    const durumBodyTemplate = (rowData: VideoEgitimSertifika) => {
         const getSeverity = (durum: string) => {
             switch (durum) {
                 case 'Geçerli': return 'success';
@@ -196,16 +214,16 @@ const SertifikalarPage = () => {
         return <Tag value={rowData.durum} severity={getSeverity(rowData.durum)} />;
     };
 
-    const puanBodyTemplate = (rowData: Sertifika) => {
-        const getSeverity = (puan: number) => {
-            if (puan >= 85) return 'success';
-            if (puan >= 60) return 'warning';
+    const izlemeYuzdesiBodyTemplate = (rowData: VideoEgitimSertifika) => {
+        const getSeverity = (yuzde: number) => {
+            if (yuzde >= 85) return 'success';
+            if (yuzde >= 60) return 'warning';
             return 'danger';
         };
-        return <Tag value={`${rowData.puan}`} severity={getSeverity(rowData.puan)} />;
+        return <Tag value={`${rowData.izlemeYuzdesi}%`} severity={getSeverity(rowData.izlemeYuzdesi)} />;
     };
 
-    const dateBodyTemplate = (rowData: Sertifika, field: 'verilisTarihi' | 'gecerlilikTarihi') => {
+    const dateBodyTemplate = (rowData: VideoEgitimSertifika, field: 'verilisTarihi' | 'gecerlilikTarihi') => {
         const date = rowData[field];
         if (!date) return '-';
         
@@ -230,7 +248,7 @@ const SertifikalarPage = () => {
 
     const header = (
         <div className="flex flex-wrap gap-2 align-items-center justify-content-between">
-            <h4 className="m-0">Sertifikalar</h4>
+            <h4 className="m-0">Video Eğitim Sertifikaları</h4>
             <span className="p-input-icon-left">
                 <i className="pi pi-search" />
                 <InputText 
@@ -265,11 +283,13 @@ const SertifikalarPage = () => {
                     >
                         <Column field="sertifikaNo" header="Sertifika No" sortable style={{ minWidth: '10rem' }} />
                         <Column field="personelAdSoyad" header="Personel" sortable style={{ minWidth: '12rem' }} />
-                        <Column field="egitimAdi" header="Eğitim" sortable style={{ minWidth: '12rem' }} />
+                        <Column field="videoEgitimBaslik" header="Video Eğitim" sortable style={{ minWidth: '12rem' }} />
+                        <Column field="kategoriAd" header="Kategori" sortable style={{ minWidth: '8rem' }} />
                         <Column field="kurum" header="Kurum" sortable style={{ minWidth: '10rem' }} />
                         <Column field="verilisTarihi" header="Veriliş Tarihi" body={(rowData) => dateBodyTemplate(rowData, 'verilisTarihi')} sortable style={{ minWidth: '10rem' }} />
                         <Column field="gecerlilikTarihi" header="Geçerlilik Tarihi" body={(rowData) => dateBodyTemplate(rowData, 'gecerlilikTarihi')} sortable style={{ minWidth: '12rem' }} />
-                        <Column field="puan" header="Puan" body={puanBodyTemplate} sortable style={{ minWidth: '6rem' }} />
+                        <Column field="izlemeYuzdesi" header="İzleme %" body={izlemeYuzdesiBodyTemplate} sortable style={{ minWidth: '8rem' }} />
+                        <Column field="toplamSure" header="Süre (dk)" sortable style={{ minWidth: '8rem' }} />
                         <Column field="durum" header="Durum" body={durumBodyTemplate} sortable style={{ minWidth: '8rem' }} />
                         <Column body={actionBodyTemplate} exportable={false} style={{ minWidth: '8rem' }} />
                     </DataTable>
@@ -277,7 +297,7 @@ const SertifikalarPage = () => {
                     <Dialog 
                         visible={sertifikaDialog} 
                         style={{ width: '600px' }} 
-                        header="Sertifika Detayı" 
+                        header="Video Eğitim Sertifika Detayı" 
                         modal 
                         className="p-fluid" 
                         footer={
@@ -305,8 +325,8 @@ const SertifikalarPage = () => {
                                 </div>
                                 
                                 <div className="text-center mb-4">
-                                    <h4 className="text-xl font-bold mb-2">{selectedSertifika.egitimAdi}</h4>
-                                    <p className="text-lg">eğitimini başarıyla tamamladığını gösterir.</p>
+                                    <h4 className="text-xl font-bold mb-2">{selectedSertifika.videoEgitimBaslik}</h4>
+                                    <p className="text-lg">video eğitimini başarıyla tamamladığını gösterir.</p>
                                 </div>
                                 
                                 <Divider />
@@ -317,8 +337,8 @@ const SertifikalarPage = () => {
                                         <p>{selectedSertifika.sertifikaNo}</p>
                                     </div>
                                     <div className="col-6">
-                                        <p className="mb-1"><strong>Başarı Puanı:</strong></p>
-                                        <p>{selectedSertifika.puan}/100</p>
+                                        <p className="mb-1"><strong>İzleme Oranı:</strong></p>
+                                        <p>{selectedSertifika.izlemeYuzdesi}%</p>
                                     </div>
                                     <div className="col-6">
                                         <p className="mb-1"><strong>Veriliş Tarihi:</strong></p>
@@ -327,6 +347,14 @@ const SertifikalarPage = () => {
                                     <div className="col-6">
                                         <p className="mb-1"><strong>Geçerlilik Tarihi:</strong></p>
                                         <p>{selectedSertifika.gecerlilikTarihi ? new Date(selectedSertifika.gecerlilikTarihi).toLocaleDateString('tr-TR') : 'Süresiz'}</p>
+                                    </div>
+                                    <div className="col-6">
+                                        <p className="mb-1"><strong>Toplam Süre:</strong></p>
+                                        <p>{selectedSertifika.toplamSure} dakika</p>
+                                    </div>
+                                    <div className="col-6">
+                                        <p className="mb-1"><strong>Kategori:</strong></p>
+                                        <p>{selectedSertifika.kategoriAd}</p>
                                     </div>
                                 </div>
                                 

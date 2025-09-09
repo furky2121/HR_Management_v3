@@ -35,6 +35,7 @@ const IzinTalepleri = () => {
         isbasiSaati: '08:00',
         gunSayisi: 0,
         izinTipi: 'Yıllık İzin',
+        gorevYeri: '',
         aciklama: ''
     });
     const [selectedIzin, setSelectedIzin] = useState(null);
@@ -61,6 +62,8 @@ const IzinTalepleri = () => {
         { label: 'Mazeret İzni', value: 'Mazeret İzni' },
         { label: 'Hastalık İzni', value: 'Hastalık İzni' },
         { label: 'Doğum İzni', value: 'Doğum İzni' },
+        { label: 'Ücretsiz İzin', value: 'Ücretsiz İzin' },
+        { label: 'Dış Görev', value: 'Dış Görev' },
         { label: 'Diğer', value: 'Diğer' }
     ];
 
@@ -169,6 +172,17 @@ const IzinTalepleri = () => {
 
     const saveIzinTalebi = async () => {
         setSubmitted(true);
+
+        // Dış Görev için görev yeri validasyonu
+        if (izinTalebi.izinTipi === 'Dış Görev' && !izinTalebi.gorevYeri) {
+            toast.current.show({
+                severity: 'error',
+                summary: 'Hata',
+                detail: 'Dış görev için görev yeri girilmelidir.',
+                life: 3000
+            });
+            return;
+        }
 
         if (izinTalebi.izinBaslamaTarihi && izinTalebi.isbasiTarihi && 
             izinTalebi.izinBaslamaTarihi < izinTalebi.isbasiTarihi) {
@@ -724,8 +738,23 @@ const IzinTalepleri = () => {
                     <div className="p-field">
                         <Message
                             severity="info"
-                            text={`Hesaplanan Toplam İzin Sayısı: ${izinTalebi.gunSayisi} Gün`}
+                            text={`Hesaplanan Toplam İzin Sayısı: ${izinTalebi.gunSayisi} Gün${(izinTalebi.izinTipi === 'Ücretsiz İzin' || izinTalebi.izinTipi === 'Dış Görev') ? ' (Bakiyeden düşülmez)' : ''}`}
                         />
+                    </div>
+                )}
+
+                {izinTalebi.izinTipi === 'Dış Görev' && (
+                    <div className="p-field">
+                        <label htmlFor="gorevYeri">Görev Yeri *</label>
+                        <InputText
+                            id="gorevYeri"
+                            value={izinTalebi.gorevYeri}
+                            onChange={(e) => onInputChange(e, 'gorevYeri')}
+                            className={submitted && izinTalebi.izinTipi === 'Dış Görev' && !izinTalebi.gorevYeri ? 'p-invalid' : ''}
+                        />
+                        {submitted && izinTalebi.izinTipi === 'Dış Görev' && !izinTalebi.gorevYeri && (
+                            <small className="p-error">Görev yeri gereklidir.</small>
+                        )}
                     </div>
                 )}
 

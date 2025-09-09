@@ -1,0 +1,527 @@
+/* Video Eğitimler Sayfası Stilleri */
+
+/* Thumbnail Container */
+.thumbnail-container {
+    position: relative;
+    display: inline-block;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s ease;
+}
+
+.thumbnail-container:hover {
+    transform: scale(1.05);
+}
+
+.play-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+.thumbnail-container:hover .play-overlay {
+    opacity: 1;
+}
+
+.play-overlay i {
+    color: white;
+    font-size: 1.5rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+/* Video Card Styles */
+.video-card {
+    transition: all 0.3s ease;
+    border: 1px solid #e1e5e9;
+    height: 100% !important;
+}
+
+.video-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+    border-color: #007ad9;
+}
+
+.video-card-header {
+    position: relative;
+    overflow: hidden;
+}
+
+.video-card-header .p-image {
+    display: block;
+    width: 100%;
+}
+
+.video-card-header img {
+    transition: transform 0.3s ease;
+}
+
+.video-card:hover .video-card-header img {
+    transform: scale(1.05);
+}
+
+.video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 10;
+}
+
+.video-overlay .p-button {
+    position: static !important;
+    margin: 0 !important;
+    transform: none !important;
+}
+
+.video-card:hover .video-overlay {
+    opacity: 1;
+}
+
+.video-card-content {
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 160px);
+}
+
+.video-card-content h6 {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #2c3e50;
+}
+
+/* Badge Overrides */
+.p-badge.text-sm {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.p-chip.text-sm {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Toolbar Enhancements */
+.p-toolbar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.p-toolbar .p-button {
+    border-radius: 25px;
+    font-weight: 500;
+}
+
+.p-toolbar .p-button.p-button-outlined {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+.p-toolbar .p-button.p-button-outlined.p-button-primary {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: white;
+}
+
+.p-toolbar .p-dropdown,
+.p-toolbar .p-inputtext {
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.p-toolbar .p-dropdown .p-dropdown-label,
+.p-toolbar .p-inputtext::placeholder {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Dialog Enhancements */
+.p-dialog .p-dialog-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px 10px 0 0;
+    padding: 1.5rem;
+}
+
+.p-dialog .p-dialog-header .p-dialog-title {
+    font-weight: 600;
+    font-size: 1.2rem;
+}
+
+.p-dialog .p-dialog-content {
+    padding: 2rem;
+}
+
+.p-dialog .p-dialog-footer {
+    padding: 1rem 2rem;
+    border-top: 1px solid #e1e5e9;
+}
+
+/* Form Field Styling */
+.p-fluid .p-field > label {
+    font-weight: 500;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.p-inputtext,
+.p-inputtextarea,
+.p-dropdown,
+.p-inputnumber-input {
+    border-radius: 8px;
+    border: 2px solid #e1e5e9;
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.p-inputtext:focus,
+.p-inputtextarea:focus,
+.p-dropdown:not(.p-disabled).p-focus,
+.p-inputnumber:not(.p-disabled).p-focus .p-inputnumber-input {
+    border-color: #007ad9;
+    box-shadow: 0 0 0 2px rgba(0, 122, 217, 0.2);
+}
+
+.p-invalid {
+    border-color: #e74c3c !important;
+    box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2) !important;
+}
+
+/* Slider Styling */
+.p-slider {
+    background: #e1e5e9;
+    border-radius: 50px;
+    height: 8px;
+}
+
+.p-slider .p-slider-range {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50px;
+}
+
+.p-slider .p-slider-handle {
+    background: white;
+    border: 3px solid #667eea;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    margin-top: -6px;
+    transition: all 0.2s ease;
+}
+
+.p-slider .p-slider-handle:hover {
+    transform: scale(1.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Checkbox Styling */
+.p-checkbox .p-checkbox-box {
+    border-radius: 6px;
+    border: 2px solid #e1e5e9;
+    transition: all 0.2s ease;
+}
+
+.p-checkbox .p-checkbox-box.p-highlight {
+    background: #667eea;
+    border-color: #667eea;
+}
+
+/* Toggle Button Styling */
+.p-togglebutton {
+    border-radius: 20px;
+    font-size: 0.75rem;
+    padding: 0.5rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.p-togglebutton.p-button-success.p-highlight {
+    background: #27ae60;
+    border-color: #27ae60;
+}
+
+/* DataTable Enhancements */
+.datatable-responsive {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.p-datatable .p-datatable-header {
+    background: #f8f9fa;
+    border-bottom: 2px solid #e1e5e9;
+    padding: 1rem;
+}
+
+.p-datatable .p-datatable-thead > tr > th {
+    background: #f8f9fa;
+    color: #2c3e50;
+    font-weight: 600;
+    border-bottom: 2px solid #e1e5e9;
+    padding: 1rem;
+}
+
+.p-datatable .p-datatable-tbody > tr {
+    transition: all 0.2s ease;
+}
+
+.p-datatable .p-datatable-tbody > tr:hover {
+    background: #f8f9fa;
+}
+
+.p-datatable .p-datatable-tbody > tr > td {
+    padding: 1rem;
+    border-bottom: 1px solid #e1e5e9;
+}
+
+/* Loading Spinner */
+.p-progress-spinner-svg {
+    width: 50px;
+    height: 50px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .p-toolbar {
+        padding: 0.75rem;
+    }
+    
+    .p-toolbar .flex {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: stretch;
+    }
+    
+    .p-toolbar .p-dropdown,
+    .p-toolbar .p-inputtext {
+        width: 100%;
+    }
+    
+    .video-card-content {
+        padding: 1rem;
+    }
+    
+    .p-dialog {
+        width: 95vw !important;
+        margin: 0.5rem;
+    }
+}
+
+/* Animation Enhancements */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.video-card {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.video-card:nth-child(1) { animation-delay: 0.1s; }
+.video-card:nth-child(2) { animation-delay: 0.2s; }
+.video-card:nth-child(3) { animation-delay: 0.3s; }
+.video-card:nth-child(4) { animation-delay: 0.4s; }
+.video-card:nth-child(5) { animation-delay: 0.5s; }
+.video-card:nth-child(6) { animation-delay: 0.6s; }
+
+/* Permission Denied Styling */
+.permission-denied {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    border-radius: 20px;
+    padding: 3rem;
+    text-align: center;
+    color: white;
+}
+
+/* Confirmation Content */
+.confirmation-content {
+    display: flex;
+    align-items: center;
+    padding: 1rem 0;
+}
+
+.confirmation-content i {
+    color: #f39c12;
+    margin-right: 1rem;
+}
+
+/* Section Headers in Dialog */
+.p-dialog h5 {
+    color: #2c3e50;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e1e5e9;
+}
+
+/* Badge and Chip Improvements */
+.p-badge {
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.p-chip {
+    border-radius: 15px;
+    font-weight: 500;
+}
+
+/* Button Improvements */
+.p-button {
+    transition: all 0.2s ease;
+}
+
+.p-button:hover {
+    transform: translateY(-1px);
+}
+
+.p-button-sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.875rem;
+}
+
+/* Card Grid Improvements */
+.grid > .col-12,
+.grid > .col-6,
+.grid > .col-4 {
+    padding: 0.5rem;
+}
+
+/* Utility Classes */
+.text-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.shadow-hover {
+    transition: box-shadow 0.3s ease;
+}
+
+.shadow-hover:hover {
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+/* Legacy styles to maintain compatibility */
+.video-egitimler-container {
+    padding: 0;
+}
+
+.kategori-card {
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid var(--surface-border);
+}
+
+.kategori-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-color: var(--primary-color);
+}
+
+.kategori-card.selected {
+    border-color: var(--primary-color);
+    background: var(--primary-50);
+    box-shadow: 0 2px 4px rgba(var(--primary-500), 0.2);
+}
+
+.space-y-2 > * + * {
+    margin-top: 0.5rem;
+}
+
+.video-thumbnail {
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.play-button {
+    color: white;
+    font-size: 3rem;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 15;
+}
+
+.play-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+.video-info {
+    padding: 1rem;
+}
+
+.video-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+    line-height: 1.4;
+}
+
+.video-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.875rem;
+    color: var(--text-color-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.video-meta .pi {
+    font-size: 0.875rem;
+}
+
+.video-description {
+    font-size: 0.875rem;
+    color: var(--text-color-secondary);
+    margin: 0.5rem 0;
+    line-height: 1.5;
+}
+
+.video-badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.75rem;
+}
+
+.progress-container {
+    margin-top: 1rem;
+}
+
+.progress-text {
+    display: flex;
+    justify-content: between;
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+}

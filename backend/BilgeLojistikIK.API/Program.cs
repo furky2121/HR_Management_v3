@@ -9,6 +9,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Circular reference handling
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.MaxDepth = 64;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+    })
     .ConfigureApiBehaviorOptions(options =>
     {
         options.InvalidModelStateResponseFactory = context =>
@@ -43,6 +50,8 @@ builder.Services.AddDbContext<BilgeLojistikIKContext>(options =>
 // Add Services
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IIzinService, IzinService>();
+builder.Services.AddScoped<IVideoEgitimService, VideoEgitimService>();
+builder.Services.AddScoped<IAvansService, AvansService>();
 
 // Add JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -71,7 +80,8 @@ builder.Services.AddCors(options =>
         {
             var allowedOrigins = new List<string> { 
                 "http://localhost:3000",
-                "http://localhost:3001", 
+                "http://localhost:3001",
+                "http://localhost:3002", 
                 "https://hr-management-murex.vercel.app",
                 "https://hr-management.vercel.app"
             };

@@ -22,7 +22,7 @@ namespace BilgeLojistikIK.API.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("BilgeLojistikIK.API.Models.Bordro", b =>
+            modelBuilder.Entity("BilgeLojistikIK.API.Models.AvansTalebi", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -31,60 +31,57 @@ namespace BilgeLojistikIK.API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal>("BrutMaas")
-                        .HasColumnType("decimal(10,2)")
-                        .HasColumnName("brut_maas");
+                    b.Property<string>("Aciklama")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("aciklama");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<decimal>("DigerKesintiler")
-                        .HasColumnType("decimal(10,2)")
-                        .HasColumnName("diger_kesintiler");
+                    b.Property<string>("OnayDurumu")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("onay_durumu");
 
-                    b.Property<int>("DonemAy")
+                    b.Property<string>("OnayNotu")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("onay_notu");
+
+                    b.Property<DateTime?>("OnayTarihi")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("onay_tarihi");
+
+                    b.Property<int?>("OnaylayanId")
                         .HasColumnType("integer")
-                        .HasColumnName("donem_ay");
-
-                    b.Property<int>("DonemYil")
-                        .HasColumnType("integer")
-                        .HasColumnName("donem_yil");
-
-                    b.Property<decimal>("MesaiOdemeler")
-                        .HasColumnType("decimal(10,2)")
-                        .HasColumnName("mesai_odemeler");
-
-                    b.Property<decimal>("NetMaas")
-                        .HasColumnType("decimal(10,2)")
-                        .HasColumnName("net_maas");
+                        .HasColumnName("onaylayan_id");
 
                     b.Property<int>("PersonelId")
                         .HasColumnType("integer")
                         .HasColumnName("personel_id");
 
-                    b.Property<decimal>("PrimOdemeler")
-                        .HasColumnType("decimal(10,2)")
-                        .HasColumnName("prim_odemeler");
+                    b.Property<DateTime>("TalepTarihi")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("talep_tarihi");
 
-                    b.Property<decimal>("SgkKesinti")
-                        .HasColumnType("decimal(10,2)")
-                        .HasColumnName("sgk_kesinti");
+                    b.Property<decimal>("TalepTutari")
+                        .HasColumnType("numeric")
+                        .HasColumnName("talep_tutari");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
-                    b.Property<decimal>("VergiKesinti")
-                        .HasColumnType("decimal(10,2)")
-                        .HasColumnName("vergi_kesinti");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("PersonelId", "DonemYil", "DonemAy")
-                        .IsUnique();
+                    b.HasIndex("OnaylayanId");
 
-                    b.ToTable("bordrolar");
+                    b.HasIndex("PersonelId");
+
+                    b.ToTable("avans_talepleri");
                 });
 
             modelBuilder.Entity("BilgeLojistikIK.API.Models.Departman", b =>
@@ -237,6 +234,68 @@ namespace BilgeLojistikIK.API.Migrations
                     b.ToTable("EkranYetkileri");
                 });
 
+            modelBuilder.Entity("BilgeLojistikIK.API.Models.IstifaTalebi", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("IstifaNedeni")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("istifa_nedeni");
+
+                    b.Property<DateTime>("IstifaTarihi")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("istifa_tarihi");
+
+                    b.Property<string>("OnayDurumu")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("onay_durumu");
+
+                    b.Property<string>("OnayNotu")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("onay_notu");
+
+                    b.Property<DateTime?>("OnayTarihi")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("onay_tarihi");
+
+                    b.Property<int?>("OnaylayanId")
+                        .HasColumnType("integer")
+                        .HasColumnName("onaylayan_id");
+
+                    b.Property<int>("PersonelId")
+                        .HasColumnType("integer")
+                        .HasColumnName("personel_id");
+
+                    b.Property<DateTime>("SonCalismaTarihi")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("son_calisma_tarihi");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OnaylayanId");
+
+                    b.HasIndex("PersonelId");
+
+                    b.ToTable("istifa_talepleri");
+                });
+
             modelBuilder.Entity("BilgeLojistikIK.API.Models.IzinTalebi", b =>
                 {
                     b.Property<int>("Id")
@@ -259,6 +318,11 @@ namespace BilgeLojistikIK.API.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("durum");
+
+                    b.Property<string>("GorevYeri")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("gorev_yeri");
 
                     b.Property<int>("GunSayisi")
                         .HasColumnType("integer")
@@ -462,6 +526,10 @@ namespace BilgeLojistikIK.API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AcilDurumIletisim")
+                        .HasColumnType("text")
+                        .HasColumnName("acil_durum_iletisim");
+
                     b.Property<string>("Ad")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -476,9 +544,34 @@ namespace BilgeLojistikIK.API.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("aktif");
 
+                    b.Property<string>("AnneAdi")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("anne_adi");
+
+                    b.Property<string>("AskerlikDurumu")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("askerlik_durumu");
+
+                    b.Property<string>("BabaAdi")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("baba_adi");
+
+                    b.Property<string>("BankaHesapNo")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("banka_hesap_no");
+
                     b.Property<DateTime?>("CikisTarihi")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("cikis_tarihi");
+
+                    b.Property<string>("Cinsiyet")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("cinsiyet");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -487,6 +580,21 @@ namespace BilgeLojistikIK.API.Migrations
                     b.Property<DateTime?>("DogumTarihi")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("dogum_tarihi");
+
+                    b.Property<string>("DogumYeri")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("dogum_yeri");
+
+                    b.Property<string>("EgitimDurumu")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("egitim_durumu");
+
+                    b.Property<string>("EhliyetSinifi")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("ehliyet_sinifi");
 
                     b.Property<string>("Email")
                         .HasMaxLength(100)
@@ -498,13 +606,38 @@ namespace BilgeLojistikIK.API.Migrations
                         .HasColumnType("character varying(255)")
                         .HasColumnName("fotograf_url");
 
+                    b.Property<string>("IbanNo")
+                        .HasMaxLength(34)
+                        .HasColumnType("character varying(34)")
+                        .HasColumnName("iban_no");
+
                     b.Property<DateTime>("IseBaslamaTarihi")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("ise_baslama_tarihi");
 
+                    b.Property<string>("KanGrubu")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("kan_grubu");
+
                     b.Property<decimal?>("Maas")
                         .HasColumnType("decimal(10,2)")
                         .HasColumnName("maas");
+
+                    b.Property<string>("MedeniHal")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("medeni_hal");
+
+                    b.Property<string>("NufusIlKod")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("nufus_il_kod");
+
+                    b.Property<string>("NufusIlceKod")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("nufus_ilce_kod");
 
                     b.Property<int>("PozisyonId")
                         .HasColumnType("integer")
@@ -597,6 +730,72 @@ namespace BilgeLojistikIK.API.Migrations
                     b.HasIndex("PersonelId");
 
                     b.ToTable("personel_egitimleri");
+                });
+
+            modelBuilder.Entity("BilgeLojistikIK.API.Models.PersonelGirisCikis", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Aciklama")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("aciklama");
+
+                    b.Property<bool>("Aktif")
+                        .HasColumnType("boolean")
+                        .HasColumnName("aktif");
+
+                    b.Property<int?>("CalismaSuresiDakika")
+                        .HasColumnType("integer")
+                        .HasColumnName("calisma_suresi_dakika");
+
+                    b.Property<DateTime?>("CikisTarihi")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("cikis_tarihi");
+
+                    b.Property<int>("ErkenCikmaDakika")
+                        .HasColumnType("integer")
+                        .HasColumnName("erken_cikma_dakika");
+
+                    b.Property<int>("GecKalmaDakika")
+                        .HasColumnType("integer")
+                        .HasColumnName("gec_kalma_dakika");
+
+                    b.Property<DateTime>("GirisTarihi")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("giris_tarihi");
+
+                    b.Property<string>("GirisTipi")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("giris_tipi");
+
+                    b.Property<DateTime?>("GuncellemeTarihi")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("guncelleme_tarihi");
+
+                    b.Property<DateTime>("OlusturmaTarihi")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("olusturma_tarihi");
+
+                    b.Property<int>("PersonelId")
+                        .HasColumnType("integer")
+                        .HasColumnName("personel_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PersonelId");
+
+                    b.ToTable("personel_giris_cikis", t =>
+                        {
+                            t.HasCheckConstraint("CK_PersonelGirisCikis_GirisTipi", "giris_tipi IN ('Normal', 'Fazla Mesai', 'Hafta Sonu')");
+                        });
                 });
 
             modelBuilder.Entity("BilgeLojistikIK.API.Models.PersonelZimmet", b =>
@@ -737,6 +936,427 @@ namespace BilgeLojistikIK.API.Migrations
                         .IsUnique();
 
                     b.ToTable("pozisyonlar");
+                });
+
+            modelBuilder.Entity("BilgeLojistikIK.API.Models.VideoAtama", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AtamaTarihi")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("AtayanPersonelId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("DepartmanId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Durum")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<bool>("HatirlatmaGonderildiMi")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Not")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int?>("PersonelId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("PozisyonId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("SonHatirlatmaTarihi")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("TamamlanmaTarihi")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("VideoEgitimId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AtayanPersonelId");
+
+                    b.HasIndex("DepartmanId");
+
+                    b.HasIndex("PersonelId");
+
+                    b.HasIndex("PozisyonId");
+
+                    b.HasIndex("VideoEgitimId");
+
+                    b.ToTable("VideoAtamalar");
+                });
+
+            modelBuilder.Entity("BilgeLojistikIK.API.Models.VideoEgitim", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Aciklama")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<bool>("Aktif")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Baslik")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Egitmen")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("GuncellemeTarihi")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("IzlenmeMinimum")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("KategoriId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("OlusturmaTarihi")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Seviye")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime?>("SonTamamlanmaTarihi")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Sure")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ThumbnailUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("VideoUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("ZorunluMu")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("KategoriId");
+
+                    b.ToTable("VideoEgitimler");
+                });
+
+            modelBuilder.Entity("BilgeLojistikIK.API.Models.VideoIzleme", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CihazTipi")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("IpAdresi")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("IzlemeBaslangic")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("IzlemeBaslangicSaniye")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("IzlemeBitis")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("IzlemeBitisSaniye")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IzlemeYuzdesi")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PersonelId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("Puan")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("TamamlandiMi")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("TamamlanmaTarihi")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ToplamIzlenenSure")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("VideoEgitimId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("VideoPlatform")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("VideoToplamSure")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PersonelId");
+
+                    b.HasIndex("VideoEgitimId");
+
+                    b.ToTable("VideoIzlemeler");
+                });
+
+            modelBuilder.Entity("BilgeLojistikIK.API.Models.VideoKategori", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Aciklama")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Ad")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("Aktif")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Icon")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("OlusturmaTarihi")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Renk")
+                        .IsRequired()
+                        .HasMaxLength(7)
+                        .HasColumnType("character varying(7)");
+
+                    b.Property<int>("Sira")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("VideoKategoriler");
+                });
+
+            modelBuilder.Entity("BilgeLojistikIK.API.Models.VideoSertifika", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Durum")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime?>("GecerlilikTarihi")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("IzlemeYuzdesi")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PersonelId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("QuizPuani")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SertifikaNo")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("SertifikaUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("VerilisTarihi")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("VerilmeTarihi");
+
+                    b.Property<int>("VideoEgitimId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PersonelId");
+
+                    b.HasIndex("VideoEgitimId");
+
+                    b.ToTable("VideoSertifikalar");
+                });
+
+            modelBuilder.Entity("BilgeLojistikIK.API.Models.VideoSoru", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Aktif")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("CevapA")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("CevapB")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("CevapC")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("CevapD")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("DogruCevap")
+                        .IsRequired()
+                        .HasMaxLength(1)
+                        .HasColumnType("character varying(1)");
+
+                    b.Property<int>("Puan")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Sira")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Soru")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("VideoEgitimId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VideoEgitimId");
+
+                    b.ToTable("VideoSorular");
+                });
+
+            modelBuilder.Entity("BilgeLojistikIK.API.Models.VideoSoruCevap", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AlinanPuan")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CevapTarihi")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("DogruMu")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("PersonelId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("VerilenCevap")
+                        .IsRequired()
+                        .HasMaxLength(1)
+                        .HasColumnType("character varying(1)");
+
+                    b.Property<int>("VideoSoruId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PersonelId");
+
+                    b.HasIndex("VideoSoruId");
+
+                    b.ToTable("VideoSoruCevaplar");
+                });
+
+            modelBuilder.Entity("BilgeLojistikIK.API.Models.VideoYorum", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Aktif")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("PersonelId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("Puan")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("VideoEgitimId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Yorum")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime>("YorumTarihi")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PersonelId");
+
+                    b.HasIndex("VideoEgitimId");
+
+                    b.ToTable("VideoYorumlar");
                 });
 
             modelBuilder.Entity("BilgeLojistikIK.API.Models.Zimmet", b =>
@@ -1071,13 +1691,36 @@ namespace BilgeLojistikIK.API.Migrations
                     b.ToTable("zimmet_stok_dosyalar");
                 });
 
-            modelBuilder.Entity("BilgeLojistikIK.API.Models.Bordro", b =>
+            modelBuilder.Entity("BilgeLojistikIK.API.Models.AvansTalebi", b =>
                 {
+                    b.HasOne("BilgeLojistikIK.API.Models.Personel", "Onaylayan")
+                        .WithMany()
+                        .HasForeignKey("OnaylayanId");
+
                     b.HasOne("BilgeLojistikIK.API.Models.Personel", "Personel")
-                        .WithMany("Bordrolar")
+                        .WithMany()
                         .HasForeignKey("PersonelId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Onaylayan");
+
+                    b.Navigation("Personel");
+                });
+
+            modelBuilder.Entity("BilgeLojistikIK.API.Models.IstifaTalebi", b =>
+                {
+                    b.HasOne("BilgeLojistikIK.API.Models.Personel", "Onaylayan")
+                        .WithMany()
+                        .HasForeignKey("OnaylayanId");
+
+                    b.HasOne("BilgeLojistikIK.API.Models.Personel", "Personel")
+                        .WithMany()
+                        .HasForeignKey("PersonelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Onaylayan");
 
                     b.Navigation("Personel");
                 });
@@ -1167,6 +1810,17 @@ namespace BilgeLojistikIK.API.Migrations
                     b.Navigation("Personel");
                 });
 
+            modelBuilder.Entity("BilgeLojistikIK.API.Models.PersonelGirisCikis", b =>
+                {
+                    b.HasOne("BilgeLojistikIK.API.Models.Personel", "Personel")
+                        .WithMany()
+                        .HasForeignKey("PersonelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Personel");
+                });
+
             modelBuilder.Entity("BilgeLojistikIK.API.Models.PersonelZimmet", b =>
                 {
                     b.HasOne("BilgeLojistikIK.API.Models.Personel", "IadeAlan")
@@ -1217,6 +1871,139 @@ namespace BilgeLojistikIK.API.Migrations
                     b.Navigation("Departman");
 
                     b.Navigation("Kademe");
+                });
+
+            modelBuilder.Entity("BilgeLojistikIK.API.Models.VideoAtama", b =>
+                {
+                    b.HasOne("BilgeLojistikIK.API.Models.Personel", "AtayanPersonel")
+                        .WithMany()
+                        .HasForeignKey("AtayanPersonelId");
+
+                    b.HasOne("BilgeLojistikIK.API.Models.Departman", "Departman")
+                        .WithMany()
+                        .HasForeignKey("DepartmanId");
+
+                    b.HasOne("BilgeLojistikIK.API.Models.Personel", "Personel")
+                        .WithMany()
+                        .HasForeignKey("PersonelId");
+
+                    b.HasOne("BilgeLojistikIK.API.Models.Pozisyon", "Pozisyon")
+                        .WithMany()
+                        .HasForeignKey("PozisyonId");
+
+                    b.HasOne("BilgeLojistikIK.API.Models.VideoEgitim", "VideoEgitim")
+                        .WithMany("VideoAtamalar")
+                        .HasForeignKey("VideoEgitimId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AtayanPersonel");
+
+                    b.Navigation("Departman");
+
+                    b.Navigation("Personel");
+
+                    b.Navigation("Pozisyon");
+
+                    b.Navigation("VideoEgitim");
+                });
+
+            modelBuilder.Entity("BilgeLojistikIK.API.Models.VideoEgitim", b =>
+                {
+                    b.HasOne("BilgeLojistikIK.API.Models.VideoKategori", "Kategori")
+                        .WithMany("VideoEgitimler")
+                        .HasForeignKey("KategoriId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Kategori");
+                });
+
+            modelBuilder.Entity("BilgeLojistikIK.API.Models.VideoIzleme", b =>
+                {
+                    b.HasOne("BilgeLojistikIK.API.Models.Personel", "Personel")
+                        .WithMany()
+                        .HasForeignKey("PersonelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BilgeLojistikIK.API.Models.VideoEgitim", "VideoEgitim")
+                        .WithMany("VideoIzlemeler")
+                        .HasForeignKey("VideoEgitimId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Personel");
+
+                    b.Navigation("VideoEgitim");
+                });
+
+            modelBuilder.Entity("BilgeLojistikIK.API.Models.VideoSertifika", b =>
+                {
+                    b.HasOne("BilgeLojistikIK.API.Models.Personel", "Personel")
+                        .WithMany()
+                        .HasForeignKey("PersonelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BilgeLojistikIK.API.Models.VideoEgitim", "VideoEgitim")
+                        .WithMany()
+                        .HasForeignKey("VideoEgitimId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Personel");
+
+                    b.Navigation("VideoEgitim");
+                });
+
+            modelBuilder.Entity("BilgeLojistikIK.API.Models.VideoSoru", b =>
+                {
+                    b.HasOne("BilgeLojistikIK.API.Models.VideoEgitim", "VideoEgitim")
+                        .WithMany("VideoSorular")
+                        .HasForeignKey("VideoEgitimId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("VideoEgitim");
+                });
+
+            modelBuilder.Entity("BilgeLojistikIK.API.Models.VideoSoruCevap", b =>
+                {
+                    b.HasOne("BilgeLojistikIK.API.Models.Personel", "Personel")
+                        .WithMany()
+                        .HasForeignKey("PersonelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BilgeLojistikIK.API.Models.VideoSoru", "VideoSoru")
+                        .WithMany("VideoSoruCevaplar")
+                        .HasForeignKey("VideoSoruId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Personel");
+
+                    b.Navigation("VideoSoru");
+                });
+
+            modelBuilder.Entity("BilgeLojistikIK.API.Models.VideoYorum", b =>
+                {
+                    b.HasOne("BilgeLojistikIK.API.Models.Personel", "Personel")
+                        .WithMany()
+                        .HasForeignKey("PersonelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BilgeLojistikIK.API.Models.VideoEgitim", "VideoEgitim")
+                        .WithMany("VideoYorumlar")
+                        .HasForeignKey("VideoEgitimId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Personel");
+
+                    b.Navigation("VideoEgitim");
                 });
 
             modelBuilder.Entity("BilgeLojistikIK.API.Models.Zimmet", b =>
@@ -1301,8 +2088,6 @@ namespace BilgeLojistikIK.API.Migrations
                 {
                     b.Navigation("AltCalisanlar");
 
-                    b.Navigation("Bordrolar");
-
                     b.Navigation("IzinTalepleri");
 
                     b.Navigation("Kullanici");
@@ -1315,6 +2100,27 @@ namespace BilgeLojistikIK.API.Migrations
             modelBuilder.Entity("BilgeLojistikIK.API.Models.Pozisyon", b =>
                 {
                     b.Navigation("Personeller");
+                });
+
+            modelBuilder.Entity("BilgeLojistikIK.API.Models.VideoEgitim", b =>
+                {
+                    b.Navigation("VideoAtamalar");
+
+                    b.Navigation("VideoIzlemeler");
+
+                    b.Navigation("VideoSorular");
+
+                    b.Navigation("VideoYorumlar");
+                });
+
+            modelBuilder.Entity("BilgeLojistikIK.API.Models.VideoKategori", b =>
+                {
+                    b.Navigation("VideoEgitimler");
+                });
+
+            modelBuilder.Entity("BilgeLojistikIK.API.Models.VideoSoru", b =>
+                {
+                    b.Navigation("VideoSoruCevaplar");
                 });
 #pragma warning restore 612, 618
         }

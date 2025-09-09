@@ -94,6 +94,20 @@ namespace BilgeLojistikIK.API.Controllers
                         p.Maas,
                         p.FotografUrl,
                         p.Adres,
+                        p.MedeniHal,
+                        p.Cinsiyet,
+                        p.AskerlikDurumu,
+                        p.EgitimDurumu,
+                        p.KanGrubu,
+                        p.EhliyetSinifi,
+                        p.AnneAdi,
+                        p.BabaAdi,
+                        p.DogumYeri,
+                        p.NufusIlKod,
+                        p.NufusIlceKod,
+                        p.AcilDurumIletisim,
+                        p.BankaHesapNo,
+                        p.IbanNo,
                         p.Aktif,
                         p.CreatedAt,
                         p.UpdatedAt,
@@ -165,6 +179,20 @@ namespace BilgeLojistikIK.API.Controllers
                     personelRaw.Maas,
                     personelRaw.FotografUrl,
                     personelRaw.Adres,
+                    personelRaw.MedeniHal,
+                    personelRaw.Cinsiyet,
+                    personelRaw.AskerlikDurumu,
+                    personelRaw.EgitimDurumu,
+                    personelRaw.KanGrubu,
+                    personelRaw.EhliyetSinifi,
+                    personelRaw.AnneAdi,
+                    personelRaw.BabaAdi,
+                    personelRaw.DogumYeri,
+                    personelRaw.NufusIlKod,
+                    personelRaw.NufusIlceKod,
+                    personelRaw.AcilDurumIletisim,
+                    personelRaw.BankaHesapNo,
+                    personelRaw.IbanNo,
                     personelRaw.Aktif,
                     personelRaw.CreatedAt,
                     personelRaw.UpdatedAt,
@@ -249,6 +277,38 @@ namespace BilgeLojistikIK.API.Controllers
                     })
                     .ToListAsync();
 
+                return Ok(new { success = true, data = personeller });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Aktif personeller getirilirken bir hata oluştu.", error = ex.Message });
+            }
+        }
+
+        // GET: api/Personel/Aktif (For VideoEgitim module)
+        [HttpGet("Aktif")]
+        public async Task<ActionResult<IEnumerable<object>>> GetAktifPersonellerForVideo()
+        {
+            try
+            {
+                var personeller = await _context.Personeller
+                    .Include(p => p.Pozisyon)
+                        .ThenInclude(pos => pos.Departman)
+                    .Where(p => p.Aktif)
+                    .OrderBy(p => p.Ad)
+                    .ThenBy(p => p.Soyad)
+                    .Select(p => new
+                    {
+                        p.Id,
+                        p.Ad,
+                        p.Soyad,
+                        AdSoyad = p.Ad + " " + p.Soyad,
+                        p.Email,
+                        PozisyonAd = p.Pozisyon.Ad,
+                        DepartmanAd = p.Pozisyon.Departman.Ad
+                    })
+                    .ToListAsync();
+                
                 return Ok(new { success = true, data = personeller });
             }
             catch (Exception ex)

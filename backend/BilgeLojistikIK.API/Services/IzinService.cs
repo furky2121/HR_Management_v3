@@ -34,10 +34,13 @@ namespace BilgeLojistikIK.API.Services
 
         public async Task<int> CalculateKullanilmisIzin(int personelId, int yil)
         {
+            // Ücretsiz İzin ve Dış Görev bakiyeden düşülmez
             var kullanilmisIzin = await _context.IzinTalepleri
                 .Where(i => i.PersonelId == personelId 
                     && i.Durum == "Onaylandı" 
-                    && i.IzinBaslamaTarihi.Year == yil)
+                    && i.IzinBaslamaTarihi.Year == yil
+                    && i.IzinTipi != "Ücretsiz İzin"
+                    && i.IzinTipi != "Dış Görev")
                 .SumAsync(i => i.GunSayisi);
 
             return kullanilmisIzin;
@@ -48,11 +51,13 @@ namespace BilgeLojistikIK.API.Services
             var toplamHak = await CalculateYillikIzinHakki(personelId);
             var kullanilmis = await CalculateKullanilmisIzin(personelId, DateTime.Now.Year);
             
-            // Bekleyen izinleri de hesaba kat
+            // Bekleyen izinleri de hesaba kat (Ücretsiz İzin ve Dış Görev hariç)
             var bekleyenIzin = await _context.IzinTalepleri
                 .Where(i => i.PersonelId == personelId 
                     && i.Durum == "Beklemede" 
-                    && i.IzinBaslamaTarihi.Year == DateTime.Now.Year)
+                    && i.IzinBaslamaTarihi.Year == DateTime.Now.Year
+                    && i.IzinTipi != "Ücretsiz İzin"
+                    && i.IzinTipi != "Dış Görev")
                 .SumAsync(i => i.GunSayisi);
 
             return Math.Max(0, toplamHak - kullanilmis - bekleyenIzin);

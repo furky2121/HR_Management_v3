@@ -9,6 +9,10 @@ class DepartmanService {
         return ApiService.get('/departman/aktif');
     }
 
+    async getDepartmanlarAktif() {
+        return ApiService.get('/departman/Aktif');
+    }
+
     async getDepartmanById(id) {
         return ApiService.get(`/departman/${id}`);
     }

@@ -20,23 +20,19 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
     useEffect(() => {
-        console.log('🔥 REAL AppTopbar useEffect TRIGGERED!');
         // Gerçek kullanıcı bilgilerini localStorage'dan al
         const user = authService.getUser();
-        console.log('REAL AppTopbar - user data:', user);
         if (user) {
             // Case-insensitive field access
             const personel = user.Personel || user.personel;
-            console.log('REAL AppTopbar - personel data:', personel);
-            console.log('REAL AppTopbar - fotografUrl:', personel?.FotografUrl || personel?.fotografUrl);
             
             setCurrentUser({
-                ad: personel?.Ad || personel?.ad || 'Kullanıcı',
-                soyad: personel?.Soyad || personel?.soyad || '',
+                ad: personel?.ad || personel?.Ad || 'Kullanıcı',
+                soyad: personel?.soyad || personel?.Soyad || '',
                 kullaniciAdi: user.kullaniciAdi,
                 pozisyon: personel?.pozisyon?.ad || personel?.Pozisyon?.Ad || '',
                 departman: personel?.pozisyon?.departman || personel?.Pozisyon?.Departman || '',
-                fotografUrl: personel?.FotografUrl || personel?.fotografUrl || null,
+                fotografUrl: personel?.fotografUrl || personel?.FotografUrl || null,
                 kademeSeviye: personel?.pozisyon?.kademe?.seviye || personel?.Pozisyon?.Kademe?.Seviye || 0
             });
         }
@@ -44,16 +40,15 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
         // Avatar cache yenilendiğinde topbar'ı da yenile
         const handleAvatarRefresh = () => {
             const updatedUser = authService.getUser();
-            console.log('REAL AppTopbar - Avatar refreshed, updated user:', updatedUser);
             if (updatedUser) {
                 const personel = updatedUser.Personel || updatedUser.personel;
                 setCurrentUser({
-                    ad: personel?.Ad || personel?.ad || 'Kullanıcı',
-                    soyad: personel?.Soyad || personel?.soyad || '',
+                    ad: personel?.ad || personel?.Ad || 'Kullanıcı',
+                    soyad: personel?.soyad || personel?.Soyad || '',
                     kullaniciAdi: updatedUser.kullaniciAdi,
                     pozisyon: personel?.pozisyon?.ad || personel?.Pozisyon?.Ad || '',
                     departman: personel?.pozisyon?.departman || personel?.Pozisyon?.Departman || '',
-                    fotografUrl: personel?.FotografUrl || personel?.fotografUrl || null,
+                    fotografUrl: personel?.fotografUrl || personel?.FotografUrl || null,
                     kademeSeviye: personel?.pozisyon?.kademe?.seviye || personel?.Pozisyon?.Kademe?.Seviye || 0
                 });
             }
@@ -120,8 +115,8 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
     return (
         <div className="layout-topbar">
             <Link href="/" className="layout-topbar-logo">
-                <img src={`/layout/images/logo-${layoutConfig.colorScheme !== 'light' ? 'white' : 'dark'}.svg`} width="47.22px" height={'35px'} alt="logo" />
-                <span>BilgeLojistik İK</span>
+                <img src="/layout/images/bilge_lojistik.png" width="47.22px" height={'35px'} alt="logo" />
+                <span>İK Yönetim Uygulaması</span>
             </Link>
 
             <button ref={menubuttonRef} type="button" className="p-link layout-menu-button layout-topbar-button" onClick={onMenuToggle}>
@@ -135,35 +130,25 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
             <div ref={topbarmenuRef} className={classNames('layout-topbar-menu', { 'layout-topbar-menu-mobile-active': layoutState.profileSidebarVisible })}>
                 {currentUser && (
                     <div className="layout-topbar-user" onClick={showProfileMenu} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem' }}>
-                        {(() => {
-                            console.log('REAL AppTopbar RENDER - currentUser:', currentUser);
-                            console.log('REAL AppTopbar RENDER - fotografUrl:', currentUser.fotografUrl);
-                            
-                            if (currentUser.fotografUrl) {
-                                const avatarUrl = fileUploadService.getAvatarUrl(currentUser.fotografUrl);
-                                console.log('REAL AppTopbar RENDER - Final avatarUrl:', avatarUrl);
-                                return (
-                                    <Avatar 
-                                        image={avatarUrl} 
-                                        shape="circle" 
-                                        size="normal"
-                                        onImageError={(e: any) => {
-                                            console.log('REAL Topbar avatar error:', e);
-                                            console.log('REAL Topbar avatar URL that failed:', avatarUrl);
-                                        }}
-                                    />
-                                );
-                            } else {
-                                return (
-                                    <Avatar 
-                                        label={currentUser.ad.charAt(0) + currentUser.soyad.charAt(0)}
-                                        size="normal" 
-                                        shape="circle"
-                                        style={{ backgroundColor: '#2196F3', color: '#ffffff' }}
-                                    />
-                                );
-                            }
-                        })()}
+                        {currentUser.fotografUrl ? (
+                            <Avatar 
+                                image={fileUploadService.getAvatarUrl(currentUser.fotografUrl)} 
+                                shape="circle" 
+                                size="normal"
+                                onImageError={(e: any) => {
+                                    // Resim yüklenemezse initials göster
+                                    e.target.style.display = 'none';
+                                    e.target.parentElement.innerHTML = `<span class="p-avatar p-component p-avatar-circle" style="background-color: #2196F3; color: #ffffff; width: 2rem; height: 2rem; font-size: 1rem;"><span class="p-avatar-text">${currentUser.ad.charAt(0).toUpperCase()}${currentUser.soyad.charAt(0).toUpperCase()}</span></span>`;
+                                }}
+                            />
+                        ) : (
+                            <Avatar 
+                                label={`${currentUser.ad.charAt(0).toUpperCase()}${currentUser.soyad.charAt(0).toUpperCase()}`}
+                                size="normal" 
+                                shape="circle"
+                                style={{ backgroundColor: '#2196F3', color: '#ffffff' }}
+                            />
+                        )}
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                             <span style={{ fontSize: '0.875rem', fontWeight: '600' }}>
                                 {currentUser.ad} {currentUser.soyad}

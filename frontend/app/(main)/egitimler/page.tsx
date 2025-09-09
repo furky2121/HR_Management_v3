@@ -1,9 +1,8 @@
 'use client';
-import { Metadata } from 'next';
-import Egitimler from '../../../src/pages/Egitimler';
+import VideoEgitimler from '../../../src/pages/VideoEgitimler';
 
 const EgitimlerPage = () => {
-    return <Egitimler />;
+    return <VideoEgitimler />;
 };
 
 export default EgitimlerPage;

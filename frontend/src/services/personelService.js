@@ -9,6 +9,10 @@ class PersonelService {
         return ApiService.get('/personel/AktifListesi');
     }
 
+    async getPersonellerAktif() {
+        return ApiService.get('/personel/Aktif');
+    }
+
     async getPersonelById(id) {
         return ApiService.get(`/personel/${id}`);
     }

@@ -53,6 +53,7 @@ namespace BilgeLojistikIK.API.Controllers
                         i.GunSayisi,
                         i.IzinTipi,
                         i.Aciklama,
+                        i.GorevYeri,
                         i.Durum,
                         i.OnaylayanId,
                         OnaylayanAd = i.Onaylayan != null && i.Durum == "Onaylandı" ? i.Onaylayan.Ad + " " + i.Onaylayan.Soyad : null,
@@ -104,6 +105,7 @@ namespace BilgeLojistikIK.API.Controllers
                         i.GunSayisi,
                         i.IzinTipi,
                         i.Aciklama,
+                        i.GorevYeri,
                         i.Durum,
                         i.OnaylayanId,
                         OnaylayanAd = i.Onaylayan != null && i.Durum == "Onaylandı" ? i.Onaylayan.Ad + " " + i.Onaylayan.Soyad : null,
@@ -210,6 +212,7 @@ namespace BilgeLojistikIK.API.Controllers
                         i.GunSayisi,
                         i.IzinTipi,
                         i.Aciklama,
+                        i.GorevYeri,
                         i.Durum,
                         i.OnaylayanId,
                         OnaylayanAd = i.Onaylayan != null && i.Durum == "Onaylandı" ? i.Onaylayan.Ad + " " + i.Onaylayan.Soyad : null,
@@ -295,6 +298,9 @@ namespace BilgeLojistikIK.API.Controllers
                     
                 if (jsonElement.TryGetProperty("izinTipi", out var tipProp))
                     izinTalebi.IzinTipi = tipProp.GetString() ?? "Yıllık İzin";
+                    
+                if (jsonElement.TryGetProperty("gorevYeri", out var gorevYeriProp))
+                    izinTalebi.GorevYeri = gorevYeriProp.GetString();
                     
                 if (jsonElement.TryGetProperty("aciklama", out var aciklamaProp))
                     izinTalebi.Aciklama = aciklamaProp.GetString();
@@ -407,6 +413,9 @@ namespace BilgeLojistikIK.API.Controllers
                     
                 if (jsonElement.TryGetProperty("izinTipi", out var tipProp))
                     izinTalebi.IzinTipi = tipProp.GetString() ?? "Yıllık İzin";
+                    
+                if (jsonElement.TryGetProperty("gorevYeri", out var gorevYeriProp))
+                    izinTalebi.GorevYeri = gorevYeriProp.GetString();
                     
                 if (jsonElement.TryGetProperty("aciklama", out var aciklamaProp))
                     izinTalebi.Aciklama = aciklamaProp.GetString();
@@ -875,6 +884,7 @@ namespace BilgeLojistikIK.API.Controllers
                         i.GunSayisi,
                         i.IzinTipi,
                         i.Aciklama,
+                        i.GorevYeri,
                         i.Durum,
                         i.CreatedAt,
                         i.UpdatedAt

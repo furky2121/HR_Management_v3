@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   trailingSlash: false,
+  // Disable strict mode to avoid findDOMNode deprecation warnings from react-transition-group
+  reactStrictMode: false,
   // Enable dynamic rendering for all pages
   experimental: {
     // App directory is now stable in Next.js 14

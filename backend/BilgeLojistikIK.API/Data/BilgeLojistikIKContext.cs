@@ -24,6 +24,19 @@ namespace BilgeLojistikIK.API.Data
         public DbSet<ZimmetMalzeme> ZimmetMalzemeleri { get; set; }
         public DbSet<PersonelZimmet> PersonelZimmetler { get; set; }
         public DbSet<ZimmetStokDosya> ZimmetStokDosyalar { get; set; }
+        public DbSet<AvansTalebi> AvansTalepleri { get; set; }
+        public DbSet<IstifaTalebi> IstifaTalepleri { get; set; }
+        
+        // Video Eğitim Tabloları
+        public DbSet<VideoKategori> VideoKategoriler { get; set; }
+        public DbSet<VideoEgitim> VideoEgitimler { get; set; }
+        public DbSet<VideoAtama> VideoAtamalar { get; set; }
+        public DbSet<VideoIzleme> VideoIzlemeler { get; set; }
+        public DbSet<VideoYorum> VideoYorumlar { get; set; }
+        public DbSet<VideoSoru> VideoSorular { get; set; }
+        public DbSet<VideoSoruCevap> VideoSoruCevaplar { get; set; }
+        public DbSet<VideoSertifika> VideoSertifikalar { get; set; }
+        public DbSet<PersonelGirisCikis> PersonelGirisCikislar { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -211,6 +224,19 @@ namespace BilgeLojistikIK.API.Data
 
             modelBuilder.Entity<PersonelZimmet>()
                 .ToTable(t => t.HasCheckConstraint("CK_PersonelZimmet_Durum", "durum IN ('Zimmetli', 'Iade Edildi')"));
+
+            // PersonelGirisCikis relationships
+            modelBuilder.Entity<PersonelGirisCikis>()
+                .HasOne(pgc => pgc.Personel)
+                .WithMany()
+                .HasForeignKey(pgc => pgc.PersonelId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PersonelGirisCikis>()
+                .HasIndex(pgc => pgc.PersonelId);
+
+            modelBuilder.Entity<PersonelGirisCikis>()
+                .ToTable(t => t.HasCheckConstraint("CK_PersonelGirisCikis_GirisTipi", "giris_tipi IN ('Normal', 'Fazla Mesai', 'Hafta Sonu')"));
         }
 
         public override int SaveChanges()
