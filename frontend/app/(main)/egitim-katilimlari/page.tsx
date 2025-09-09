@@ -269,12 +269,12 @@ const EgitimKatilimlariPage = () => {
     };
 
     const durumBodyTemplate = (rowData: VideoEgitimAtama) => {
-        const getSeverity = (durum: string) => {
+        const getSeverity = (durum: string): "success" | "info" | "danger" | "warning" | null => {
             switch (durum) {
                 case 'Tamamlandı': return 'success';
                 case 'İzleniyor': return 'info';
                 case 'Atandı': return 'warning';
-                case 'Başlanmadı': return 'secondary';
+                case 'Başlanmadı': return null;  // secondary yerine null
                 case 'İptal': return 'danger';
                 default: return null;
             }
