@@ -1,32 +1,29 @@
-databases:
-  - name: bilgelojistik-db
-    databaseName: BilgeLojistikIKdb
-    user: bilgelojistik
-    region: oregon
-    plan: free
-
 services:
   - type: web
     name: bilgelojistik-api
     runtime: docker
-    region: oregon
-    plan: free
     rootDir: backend/BilgeLojistikIK.API
     dockerfilePath: ./Dockerfile
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
       - key: ASPNETCORE_URLS
-        value: http://0.0.0.0:10000
-      - key: PORT
-        value: 10000
+        value: http://+:10000
       - key: ConnectionStrings__DefaultConnection
         fromDatabase:
           name: bilgelojistik-db
           property: connectionString
-      - key: JwtSettings__SecretKey
+      - key: Jwt__Key
         generateValue: true
-      - key: JwtSettings__Issuer
+      - key: Jwt__Issuer
         value: BilgeLojistikIK
-      - key: JwtSettings__Audience
-        value: BilgeLojistikIKUsers
+      - key: Jwt__ExpireHours
+        value: 8
+      - key: FRONTEND_URL
+        value: https://bilgelojistik-ik.vercel.app
+
+databases:
+  - name: bilgelojistik-db
+    databaseName: bilgelojistikikdb
+    user: bilgelojistik
+    plan: free
