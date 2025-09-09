@@ -83,7 +83,9 @@ builder.Services.AddCors(options =>
                 "http://localhost:3001",
                 "http://localhost:3002", 
                 "https://hr-management-murex.vercel.app",
-                "https://hr-management.vercel.app"
+                "https://hr-management.vercel.app",
+                "https://hr-management-v1.vercel.app",
+                "https://bilgelojistik-hr.vercel.app"
             };
             
             // Production ortamında environment variable'dan ekstra origin ekle
