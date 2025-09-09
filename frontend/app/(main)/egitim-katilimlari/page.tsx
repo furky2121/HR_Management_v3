@@ -38,6 +38,7 @@ interface VideoEgitimAtama {
 const EgitimKatilimlariPage = () => {
     const [atamalar, setAtamalar] = useState<VideoEgitimAtama[]>([]);
     const [loading, setLoading] = useState(true);
+    const [atamaDialog, setAtamaDialog] = useState(false);
     const [deleteAtamaDialog, setDeleteAtamaDialog] = useState(false);
     const [topluAtamaDialog, setTopluAtamaDialog] = useState(false);
     const [selectedAtama, setSelectedAtama] = useState<VideoEgitimAtama | null>(null);
