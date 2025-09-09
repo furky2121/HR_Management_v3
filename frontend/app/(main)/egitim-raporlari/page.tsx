@@ -53,7 +53,7 @@ const EgitimRaporlariPage = () => {
             setLoading(true);
             
             // Video eğitim istatistikleri
-            const stats = await videoEgitimService.getVideoEgitimIstatistikleri(selectedYear, selectedMonth);
+            const stats = await videoEgitimService.getVideoEgitimIstatistikleri();
             setEgitimIstatistikleri(stats.data.data || {
                 toplamVideoEgitim: 0,
                 tamamlananAtama: 0,
