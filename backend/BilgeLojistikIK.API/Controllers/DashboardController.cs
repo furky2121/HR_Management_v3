@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BilgeLojistikIK.API.Data;
+using BilgeLojistikIK.API.Models;
 
 namespace BilgeLojistikIK.API.Controllers
 {
@@ -688,36 +689,11 @@ namespace BilgeLojistikIK.API.Controllers
                     DevamEdenAtama = toplamAtama - tamamlananAtama,
                     TamamlanmaOrani = toplamAtama > 0 ? (double)tamamlananAtama / toplamAtama * 100 : 0,
                     
-                    // En popüler eğitimler
-                    PopulerEgitimler = await _context.VideoEgitimler
-                        .Select(ve => new {
-                            Id = ve.Id,
-                            Baslik = ve.Baslik,
-                            Kategori = ve.KategoriId,
-                            AtamaSayisi = _context.VideoAtamalar.Count(va => va.VideoEgitimId == ve.Id),
-                            TamamlanmaSayisi = _context.VideoAtamalar.Count(va => va.VideoEgitimId == ve.Id && va.Durum == "Tamamlandı"),
-                            OrtalamaTamamlanma = _context.VideoAtamalar
-                                .Where(va => va.VideoEgitimId == ve.Id)
-                                .Any() ? 
-                                _context.VideoAtamalar
-                                    .Where(va => va.VideoEgitimId == ve.Id && va.Durum == "Tamamlandı")
-                                    .Count() * 100.0 / _context.VideoAtamalar.Count(va => va.VideoEgitimId == ve.Id)
-                                : 0
-                        })
-                        .OrderByDescending(x => x.AtamaSayisi)
-                        .Take(5)
-                        .ToListAsync(),
+                    // En popüler eğitimler - fix LINQ translation issue by separating queries
+                    PopulerEgitimler = await GetPopulerEgitimlerAsync(),
 
-                    // Kategori dağılımı
-                    KategoriDagilimi = videoEgitimler
-                        .GroupBy(ve => ve.KategoriId)
-                        .Select(g => new {
-                            KategoriId = g.Key,
-                            EgitimSayisi = g.Count(),
-                            ToplamAtama = _context.VideoAtamalar.Count(va => g.Any(ve => ve.Id == va.VideoEgitimId))
-                        })
-                        .OrderByDescending(x => x.ToplamAtama)
-                        .ToList(),
+                    // Kategori dağılımı - fix LINQ translation issue
+                    KategoriDagilimi = await GetKategoriDagilimiAsync(videoEgitimler),
 
                     // Son eklenen eğitimler
                     SonEklenenler = videoEgitimler
@@ -753,6 +729,82 @@ namespace BilgeLojistikIK.API.Controllers
             var ayAdlari = new string[] { "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
                                          "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık" };
             return ayAdlari[ay - 1];
+        }
+
+        // Helper method to get popular trainings without LINQ translation issues
+        private async Task<object> GetPopulerEgitimlerAsync()
+        {
+            var videoEgitimIds = await _context.VideoEgitimler
+                .Where(ve => ve.Aktif)
+                .Select(ve => ve.Id)
+                .ToListAsync();
+
+            var egitimAtamalar = await _context.VideoAtamalar
+                .Where(va => videoEgitimIds.Contains(va.VideoEgitimId))
+                .GroupBy(va => va.VideoEgitimId)
+                .Select(g => new {
+                    VideoEgitimId = g.Key,
+                    AtamaSayisi = g.Count(),
+                    TamamlanmaSayisi = g.Count(va => va.Durum == "Tamamlandı")
+                })
+                .ToListAsync();
+
+            var videoEgitimler = await _context.VideoEgitimler
+                .Where(ve => ve.Aktif)
+                .Select(ve => new {
+                    Id = ve.Id,
+                    Baslik = ve.Baslik,
+                    Kategori = ve.KategoriId
+                })
+                .ToListAsync();
+
+            var result = videoEgitimler
+                .Select(ve => {
+                    var atama = egitimAtamalar.FirstOrDefault(ea => ea.VideoEgitimId == ve.Id);
+                    var atamaSayisi = atama?.AtamaSayisi ?? 0;
+                    var tamamlanmaSayisi = atama?.TamamlanmaSayisi ?? 0;
+                    
+                    return new {
+                        Id = ve.Id,
+                        Baslik = ve.Baslik,
+                        Kategori = ve.Kategori,
+                        AtamaSayisi = atamaSayisi,
+                        TamamlanmaSayisi = tamamlanmaSayisi,
+                        OrtalamaTamamlanma = atamaSayisi > 0 ? (double)tamamlanmaSayisi / atamaSayisi * 100.0 : 0
+                    };
+                })
+                .OrderByDescending(x => x.AtamaSayisi)
+                .Take(5)
+                .ToList();
+
+            return result;
+        }
+
+        // Helper method to get category distribution without LINQ translation issues
+        private async Task<object> GetKategoriDagilimiAsync(List<VideoEgitim> videoEgitimler)
+        {
+            var kategoriGroups = videoEgitimler
+                .GroupBy(ve => ve.KategoriId)
+                .ToList();
+
+            var result = new List<object>();
+
+            foreach (var group in kategoriGroups)
+            {
+                var videoEgitimIds = group.Select(ve => ve.Id).ToList();
+                
+                var toplamAtama = await _context.VideoAtamalar
+                    .Where(va => videoEgitimIds.Contains(va.VideoEgitimId))
+                    .CountAsync();
+
+                result.Add(new {
+                    KategoriId = group.Key,
+                    EgitimSayisi = group.Count(),
+                    ToplamAtama = toplamAtama
+                });
+            }
+
+            return result.OrderByDescending(x => ((dynamic)x).ToplamAtama).ToList();
         }
     }
 }

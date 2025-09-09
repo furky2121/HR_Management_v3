@@ -12,7 +12,10 @@
       "Bash(git commit:*)",
       "Bash(git remote remove:*)",
       "Bash(git remote add:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(pg_dump:*)",
+      "Bash(cat:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []
