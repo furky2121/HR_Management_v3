@@ -65,12 +65,12 @@ const EgitimRaporlariPage = () => {
             });
 
             // Personel video eğitim özeti
-            const personelOzet = await videoEgitimService.getPersonelVideoEgitimOzeti(selectedYear);
+            const personelOzet = await videoEgitimService.getPersonelVideoEgitimOzeti();
             setPersonelEgitimOzeti(personelOzet.data.data || []);
 
             // Departman bazlı video eğitimler
-            const departmanEgitim = await videoEgitimService.getDepartmanBazliVideoEgitimler(selectedYear);
-            setDepartmanBazliEgitimler(departmanEgitim.data.data || []);
+            // const departmanEgitim = await videoEgitimService.getDepartmanBazliVideoEgitimler(selectedYear);
+            setDepartmanBazliEgitimler([]); // departmanEgitim.data.data || []
 
             // Grafik verileri
             prepareChartData(stats.data.data);
