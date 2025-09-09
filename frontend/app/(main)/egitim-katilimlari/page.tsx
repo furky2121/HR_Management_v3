@@ -149,6 +149,11 @@ const EgitimKatilimlariPage = () => {
         setDeleteAtamaDialog(false);
     };
 
+    const editAtama = (atama: VideoEgitimAtama) => {
+        setSelectedAtama(atama);
+        setAtamaDialog(true);
+    };
+
     const confirmDeleteAtama = (atama: VideoEgitimAtama) => {
         setSelectedAtama(atama);
         setDeleteAtamaDialog(true);
