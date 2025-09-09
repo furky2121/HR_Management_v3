@@ -1,0 +1,30 @@
+services:
+  # Web service for the .NET API
+  - type: web
+    name: bilgelojistik-api
+    runtime: docker
+    dockerfilePath: ./backend/BilgeLojistikIK.API/Dockerfile
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://+:80
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: bilgelojistik-db
+          property: connectionString
+      - key: Jwt__Key
+        generateValue: true
+      - key: Jwt__Issuer
+        value: BilgeLojistikIK
+      - key: Jwt__ExpireHours
+        value: 8
+      - key: FRONTEND_URL
+        value: https://bilgelojistik-hr.vercel.app
+
+# PostgreSQL database
+databases:
+  - name: bilgelojistik-db
+    databaseName: bilgelojistikdb
+    user: bilgelojistik
+    plan: free
