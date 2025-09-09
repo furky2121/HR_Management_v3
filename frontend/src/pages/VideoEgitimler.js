@@ -860,7 +860,7 @@ const VideoEgitimler = () => {
                                     disabled={true}
                                     className="p-inputtext-disabled"
                                 />
-                                <small className="p-text-secondary">Video URL'sinden otomatik hesaplanır</small>
+                                <small className="p-text-secondary">Video URL&apos;sinden otomatik hesaplanır</small>
                             </div>
 
                             {/* Eğitim Ayarları */}
@@ -937,7 +937,7 @@ const VideoEgitimler = () => {
                             <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
                             {egitimToDelete && (
                                 <span>
-                                    <strong>"{egitimToDelete.baslik}"</strong> adlı video eğitimini silmek istediğinizden emin misiniz?
+                                    <strong>&quot;{egitimToDelete.baslik}&quot;</strong> adlı video eğitimini silmek istediğinizden emin misiniz?
                                 </span>
                             )}
                         </div>

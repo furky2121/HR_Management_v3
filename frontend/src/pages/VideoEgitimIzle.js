@@ -340,7 +340,7 @@ const VideoEgitimIzle = ({ egitimId }) => {
                     </div>
                     <h3>Video Eğitimi Tamamladınız!</h3>
                     <p>
-                        "<strong>{egitim.baslik}</strong>" eğitimini başarıyla tamamladınız. 
+                        &quot;<strong>{egitim.baslik}</strong>&quot; eğitimini başarıyla tamamladınız. 
                         Artık sertifikanızı oluşturabilirsiniz.
                     </p>
                     <div className="completion-stats">

@@ -564,7 +564,7 @@ const IstifaIslemleri = () => {
                             placeholder="İstifa nedeninizi belirtiniz (isteğe bağlı)"
                         />
                         <small className="p-text-secondary">
-                            Boş bırakılırsa "Kişisel nedenlerimden dolayı" olarak geçecektir.
+                            Boş bırakılırsa &quot;Kişisel nedenlerimden dolayı&quot; olarak geçecektir.
                         </small>
                     </div>
                 </Dialog>

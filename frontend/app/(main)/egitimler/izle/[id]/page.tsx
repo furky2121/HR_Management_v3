@@ -23,9 +23,9 @@ const VideoEgitimIzlePage = ({ params }: Props) => {
         const loadComponent = async () => {
             try {
                 console.log('🔄 VideoEgitimIzlePage Attempting to import VideoEgitimIzle component...');
-                const module = await import('../../../../../src/pages/VideoEgitimIzle.js');
-                console.log('✅ VideoEgitimIzlePage VideoEgitimIzle component loaded successfully:', module);
-                setVideoComponent(() => module.default);
+                const videoModule = await import('../../../../../src/pages/VideoEgitimIzle.js');
+                console.log('✅ VideoEgitimIzlePage VideoEgitimIzle component loaded successfully:', videoModule);
+                setVideoComponent(() => videoModule.default);
                 setIsLoading(false);
             } catch (err: any) {
                 console.error('❌ VideoEgitimIzlePage Error loading VideoEgitimIzle component:', err);
