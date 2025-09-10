@@ -64,7 +64,7 @@ const VideoEgitimIzlePage = ({ params }: Props) => {
         setLoading(true);
         
         try {
-            const response = await videoEgitimService.getEgitimDetay(params.id, personelId || undefined);
+            const response = await videoEgitimService.getEgitimDetay(params.id, personelId as any);
             if (response.success) {
                 const egitimData = response.data.egitim || response.data;
                 setEgitim(egitimData);
