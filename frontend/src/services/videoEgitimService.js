@@ -57,6 +57,11 @@ class VideoEgitimService {
         return ApiService.post('/VideoEgitim/izleme', izlemeData);
     }
 
+    // Progress güncelleme
+    async updateProgress(progressData) {
+        return ApiService.post('/VideoEgitim/update-progress', progressData);
+    }
+
     // Video süresini API'dan çek
     async getVideoDuration(videoUrl) {
         return ApiService.post('/VideoEgitim/get-video-duration', { videoUrl });

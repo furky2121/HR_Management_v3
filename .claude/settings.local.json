@@ -15,7 +15,8 @@
       "Bash(git push:*)",
       "Bash(pg_dump:*)",
       "Bash(cat:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

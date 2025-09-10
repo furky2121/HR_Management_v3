@@ -731,18 +731,8 @@ const VideoPlayer = ({ egitim, onComplete, onProgress, personelId }) => {
                     console.log(`Saving Local video progress: ${progressData.izlemeYuzdesi}% (${Math.round(currentTime)}s watched of ${Math.round(duration)}s)`);
                 }
 
-                // Use fetch directly to call the new progress endpoint
-                const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-                const response = await fetch('http://localhost:5000/api/VideoEgitim/update-progress', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(progressData)
-                });
-
-                const result = await response.json();
+                // Use videoEgitimService instead of direct fetch
+                const result = await videoEgitimService.updateProgress(progressData);
                 
                 if (result.success) {
                     console.log('Progress saved successfully');
