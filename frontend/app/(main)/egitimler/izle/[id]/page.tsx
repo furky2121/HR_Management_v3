@@ -207,6 +207,9 @@ const VideoEgitimIzlePage = ({ params }: Props) => {
                 egitim={egitim}
                 personelId={personelId}
                 onComplete={handleVideoComplete}
+                onProgress={(progressData) => {
+                    console.log('Video progress:', progressData);
+                }}
             />
 
             {/* Completion Dialog */}
