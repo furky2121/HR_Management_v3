@@ -207,7 +207,7 @@ const VideoEgitimIzlePage = ({ params }: Props) => {
                 egitim={egitim}
                 personelId={personelId}
                 onComplete={handleVideoComplete}
-                onProgress={(progressData) => {
+                onProgress={(progressData: any) => {
                     console.log('Video progress:', progressData);
                 }}
             />
