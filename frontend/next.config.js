@@ -9,6 +9,24 @@ const nextConfig = {
   },
   // Skip trace file operations to prevent ENOENT errors
   outputFileTracing: false,
+  // Webpack configuration for better module resolution
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    // Add alias for @ to point to the frontend directory
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': require('path').resolve(__dirname),
+    };
+    
+    // Ensure proper module resolution for production builds
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      path: false,
+      os: false,
+    };
+    
+    return config;
+  },
   env: {
     NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || 'https://bilgelojistik-api.onrender.com/api',
     NEXT_PUBLIC_FILE_BASE_URL: process.env.NEXT_PUBLIC_FILE_BASE_URL || 'https://bilgelojistik-api.onrender.com',
