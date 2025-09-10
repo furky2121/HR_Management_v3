@@ -12,7 +12,7 @@ class ApiService {
         };
 
         // JWT Token ekle
-        const token = localStorage.getItem('token');
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
         
         // Only set Content-Type for JSON if not FormData
         if (!(options.body instanceof FormData)) {

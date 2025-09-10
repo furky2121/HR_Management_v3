@@ -286,20 +286,27 @@ class VideoEgitimService {
 
         // Local storage'a progress kaydet
         const storageKey = `video_progress_${videoEgitimId}`;
-        localStorage.setItem(storageKey, JSON.stringify(progressData));
+        if (typeof window !== 'undefined') {
+            localStorage.setItem(storageKey, JSON.stringify(progressData));
+        }
 
         return progressData;
     }
 
     getStoredProgress(videoEgitimId) {
         const storageKey = `video_progress_${videoEgitimId}`;
-        const stored = localStorage.getItem(storageKey);
-        return stored ? JSON.parse(stored) : null;
+        if (typeof window !== 'undefined') {
+            const stored = localStorage.getItem(storageKey);
+            return stored ? JSON.parse(stored) : null;
+        }
+        return null;
     }
 
     clearStoredProgress(videoEgitimId) {
         const storageKey = `video_progress_${videoEgitimId}`;
-        localStorage.removeItem(storageKey);
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem(storageKey);
+        }
     }
 
     // Atama işlemleri - Eğitim Katılımları için
