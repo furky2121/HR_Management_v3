@@ -48,14 +48,16 @@ const VideoEgitimIzlePage = ({ params }: Props) => {
     }, [params.id, personelId, router]);
 
     const loadPersonalInfo = () => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            try {
-                const payload = JSON.parse(atob(token.split('.')[1]));
-                const personelId = payload.PersonelId || payload.personelId || payload.sub;
-                setPersonelId(personelId);
-            } catch (error) {
-                console.error('Error parsing token:', error);
+        if (typeof window !== 'undefined') {
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    const personelId = payload.PersonelId || payload.personelId || payload.sub;
+                    setPersonelId(personelId);
+                } catch (error) {
+                    console.error('Error parsing token:', error);
+                }
             }
         }
     };

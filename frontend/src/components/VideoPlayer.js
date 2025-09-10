@@ -732,7 +732,7 @@ const VideoPlayer = ({ egitim, onComplete, onProgress, personelId }) => {
                 }
 
                 // Use fetch directly to call the new progress endpoint
-                const token = localStorage.getItem('token');
+                const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
                 const response = await fetch('http://localhost:5000/api/VideoEgitim/update-progress', {
                     method: 'POST',
                     headers: {
