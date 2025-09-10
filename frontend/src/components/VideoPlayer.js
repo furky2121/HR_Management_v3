@@ -6,7 +6,7 @@ import { Card } from 'primereact/card';
 import { Badge } from 'primereact/badge';
 import { Divider } from 'primereact/divider';
 import videoEgitimService from '../services/videoEgitimService';
-import './VideoPlayer.css';
+// CSS import removed to prevent production build issues
 
 const VideoPlayer = ({ egitim, onComplete, onProgress, personelId }) => {
     const videoRef = useRef(null);

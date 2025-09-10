@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-
+import React from 'react';
+import dynamic from 'next/dynamic';
 
 interface Props {
     params: {
@@ -9,64 +9,22 @@ interface Props {
     };
 }
 
-const VideoEgitimIzlePage = ({ params }: Props) => {
-    console.log('🎯 VideoEgitimIzlePage wrapper called with params:', params);
-    console.log('🎯 VideoEgitimIzlePage wrapper called at:', new Date().toLocaleTimeString());
-    const [VideoComponent, setVideoComponent] = useState<any>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        console.log('🔄 VideoEgitimIzlePage Loading VideoEgitimIzle component dynamically for ID:', params.id);
-        
-        // Use dynamic import to load the component
-        const loadComponent = async () => {
-            try {
-                console.log('🔄 VideoEgitimIzlePage Attempting to import VideoEgitimIzle component...');
-                const videoModule = await import('../../../../../src/pages/VideoEgitimIzle.js');
-                console.log('✅ VideoEgitimIzlePage VideoEgitimIzle component loaded successfully:', videoModule);
-                setVideoComponent(() => videoModule.default);
-                setIsLoading(false);
-            } catch (err: any) {
-                console.error('❌ VideoEgitimIzlePage Error loading VideoEgitimIzle component:', err);
-                setError(err.message);
-                setIsLoading(false);
-            }
-        };
-
-        loadComponent();
-    }, [params.id]);
-
-    if (isLoading) {
-        return (
+// Use Next.js dynamic import with proper loading component
+const VideoEgitimIzle = dynamic(
+    () => import('../../../../../src/pages/VideoEgitimIzle.js'),
+    { 
+        loading: () => (
             <div style={{ padding: '20px', textAlign: 'center' }}>
                 <h2>Video Yükleniyor...</h2>
-                <p>Video ID: {params.id}</p>
+                <div className="spinner" style={{ margin: '20px auto', width: '40px', height: '40px', border: '4px solid #f3f3f3', borderTop: '4px solid #3498db', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
             </div>
-        );
+        ),
+        ssr: false // Disable server-side rendering for this component
     }
+);
 
-    if (error) {
-        return (
-            <div style={{ padding: '20px', textAlign: 'center' }}>
-                <h2>Video Yüklenemiyor</h2>
-                <p>Video ID: {params.id}</p>
-                <p>Hata: {error}</p>
-            </div>
-        );
-    }
-
-    if (!VideoComponent) {
-        return (
-            <div style={{ padding: '20px', textAlign: 'center' }}>
-                <h2>Video Bileşeni Bulunamadı</h2>
-                <p>Video ID: {params.id}</p>
-            </div>
-        );
-    }
-
-    console.log('🎬 VideoEgitimIzlePage Rendering VideoComponent with egitimId:', params.id);
-    return <VideoComponent egitimId={params.id} />;
+const VideoEgitimIzlePage = ({ params }: Props) => {
+    return <VideoEgitimIzle egitimId={params.id} />;
 };
 
 export default VideoEgitimIzlePage;

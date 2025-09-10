@@ -8,7 +8,7 @@ import { Skeleton } from 'primereact/skeleton';
 import { Dialog } from 'primereact/dialog';
 import VideoPlayer from '../components/VideoPlayer';
 import videoEgitimService from '../services/videoEgitimService';
-import './VideoEgitimIzle.css';
+// CSS import removed to prevent production build issues
 
 const VideoEgitimIzle = ({ egitimId }) => {
     console.log('🚀 VideoEgitimIzle component loaded with egitimId:', egitimId);
@@ -84,41 +84,21 @@ const VideoEgitimIzle = ({ egitimId }) => {
                 }
             } else {
                 console.log('⚠️ VideoEgitimIzle API Response unsuccessful:', response.message);
-                
-                // Test: Add mock data if API fails
-                const mockData = {
-                    id: egitimId,
-                    baslik: 'Test Video Eğitim',
-                    aciklama: 'Bu bir test eğitimidir.',
-                    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-                    thumbnailUrl: 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
-                    sureDakika: 120,
-                    seviye: 'Başlangıç',
-                    egitmen: 'Test Eğitmen',
-                    zorunluMu: false,
-                    izlenmeMinimum: 80
-                };
-                console.log('🎭 VideoEgitimIzle Using mock data for testing:', mockData);
-                setEgitim(mockData);
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Hata',
+                    detail: response.message || 'Video eğitim bilgileri alınamadı.'
+                });
+                router.push('/egitimler');
             }
         } catch (error) {
             console.error('❌ VideoEgitimIzle Error loading egitim:', error);
-            
-            // Test: Add mock data on error too
-            const mockData = {
-                id: egitimId,
-                baslik: 'Test Video Eğitim (Mock)',
-                aciklama: 'Bu bir test eğitimidir (API hatası nedeniyle mock data).',
-                videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-                thumbnailUrl: 'https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
-                sureDakika: 120,
-                seviye: 'Başlangıç',
-                egitmen: 'Test Eğitmen',
-                zorunluMu: false,
-                izlenmeMinimum: 80
-            };
-            console.log('🎭 VideoEgitimIzle Using mock data due to API error:', mockData);
-            setEgitim(mockData);
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Hata',
+                detail: 'Video eğitim yüklenirken bir hata oluştu.'
+            });
+            router.push('/egitimler');
         } finally {
             console.log('🏁 VideoEgitimIzle Loading finished, setting loading to false');
             setLoading(false);

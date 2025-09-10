@@ -330,7 +330,13 @@ namespace BilgeLojistikIK.API.Services
 
             if (egitim == null) 
             {
-                return null;
+                // Return a proper error response instead of null
+                return new
+                {
+                    error = true,
+                    message = "Video eğitim bulunamadı",
+                    egitimId = egitimId
+                };
             }
 
             // Get user-specific data if personelId provided

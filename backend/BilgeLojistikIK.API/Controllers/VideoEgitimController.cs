@@ -379,10 +379,13 @@ namespace BilgeLojistikIK.API.Controllers
                 var detay = await _videoEgitimService.GetEgitimDetayAsync(id, personelId);
                 Console.WriteLine($"Detay from service: {detay != null}");
                 
-                if (detay == null)
+                // Check if service returned an error response
+                if (detay is object errorResponse && 
+                    errorResponse.GetType().GetProperty("error")?.GetValue(errorResponse)?.Equals(true) == true)
                 {
-                    Console.WriteLine("Eğitim bulunamadı");
-                    return NotFound(new { success = false, message = "Eğitim bulunamadı" });
+                    var message = errorResponse.GetType().GetProperty("message")?.GetValue(errorResponse)?.ToString();
+                    Console.WriteLine($"Service returned error: {message}");
+                    return NotFound(new { success = false, message = message ?? "Eğitim bulunamadı" });
                 }
 
                 Console.WriteLine("Returning success response");
