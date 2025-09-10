@@ -330,54 +330,50 @@ namespace BilgeLojistikIK.API.Services
 
             if (egitim == null) 
             {
-                // Create a test record if no record exists
-                var testEgitim = new VideoEgitim
-                {
-                    Id = egitimId,
-                    Baslik = $"Test Video Eğitim {egitimId}",
-                    Aciklama = "Bu test amaçlı oluşturulan bir video eğitimidir.",
-                    VideoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-                    ThumbnailUrl = "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
-                    Sure = 180,
-                    Seviye = "Başlangıç",
-                    Egitmen = "Test Eğitmen",
-                    ZorunluMu = false,
-                    IzlenmeMinimum = 80,
-                    Aktif = true,
-                    OlusturmaTarihi = DateTime.Now
-                };
-                
-                return new
-                {
-                    egitim = testEgitim,
-                    izlemeKaydi = (object?)null,
-                    atama = (object?)null,
-                    toplamIzlenme = 0,
-                    ortalamaPuan = 0.0,
-                    tamamlanmaOrani = 0.0
-                };
+                return null;
             }
+
+            // Get user-specific data if personelId provided
+            object izlemeKaydi = null;
+            object atama = null;
+            
+            if (personelId.HasValue)
+            {
+                izlemeKaydi = await _context.VideoIzlemeler
+                    .Where(i => i.VideoEgitimId == egitimId && i.PersonelId == personelId)
+                    .OrderByDescending(i => i.IzlemeBaslangic)
+                    .FirstOrDefaultAsync();
+                    
+                atama = await _context.VideoAtamalar
+                    .FirstOrDefaultAsync(a => a.VideoEgitimId == egitimId && a.PersonelId == personelId);
+            }
+
+            // Get statistics separately to avoid complex LINQ translation
+            var toplamIzlenme = await _context.VideoIzlemeler
+                .CountAsync(i => i.VideoEgitimId == egitimId);
+
+            // Calculate average rating
+            var puanliIzlemeler = await _context.VideoIzlemeler
+                .Where(i => i.VideoEgitimId == egitimId && i.Puan.HasValue)
+                .Select(i => i.Puan.Value)
+                .ToListAsync();
+            var ortalamaPuan = puanliIzlemeler.Any() ? puanliIzlemeler.Average() : 0.0;
+
+            // Calculate completion rate
+            var tumIzlemeler = await _context.VideoIzlemeler
+                .Where(i => i.VideoEgitimId == egitimId)
+                .Select(i => (double)i.IzlemeYuzdesi)
+                .ToListAsync();
+            var tamamlanmaOrani = tumIzlemeler.Any() ? tumIzlemeler.Average() : 0.0;
 
             var result = new
             {
                 egitim,
-                izlemeKaydi = personelId.HasValue ? 
-                    await _context.VideoIzlemeler
-                        .Where(i => i.VideoEgitimId == egitimId && i.PersonelId == personelId)
-                        .OrderByDescending(i => i.IzlemeBaslangic)
-                        .FirstOrDefaultAsync() : null,
-                atama = personelId.HasValue ?
-                    await _context.VideoAtamalar
-                        .FirstOrDefaultAsync(a => a.VideoEgitimId == egitimId && 
-                                                 a.PersonelId == personelId) : null,
-                toplamIzlenme = await _context.VideoIzlemeler
-                    .CountAsync(i => i.VideoEgitimId == egitimId),
-                ortalamaPuan = await _context.VideoIzlemeler
-                    .Where(i => i.VideoEgitimId == egitimId && i.Puan.HasValue)
-                    .AverageAsync(i => i.Puan) ?? 0,
-                tamamlanmaOrani = await _context.VideoIzlemeler
-                    .Where(i => i.VideoEgitimId == egitimId)
-                    .AverageAsync(i => (double?)i.IzlemeYuzdesi) ?? 0
+                izlemeKaydi,
+                atama,
+                toplamIzlenme,
+                ortalamaPuan,
+                tamamlanmaOrani
             };
 
             return result;
