@@ -137,8 +137,12 @@ const OrganizasyonSemasi = () => {
                                 style={{ border: `4px solid ${kademeColor}` }}
                                 onImageError={(e) => {
                                     console.log('Avatar image error:', e);
-                                    e.target.style.display = 'none';
-                                    e.target.parentElement.innerHTML = `<div class="pi pi-user" style="font-size: 2rem; color: ${kademeColor}"></div>`;
+                                    const target = e.target;
+                                    const parent = target?.parentElement;
+                                    if (target && parent) {
+                                        target.style.display = 'none';
+                                        parent.innerHTML = `<div class="pi pi-user" style="font-size: 2rem; color: ${kademeColor}"></div>`;
+                                    }
                                 }}
                             />
                         ) : (

@@ -136,9 +136,13 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
                                 shape="circle" 
                                 size="normal"
                                 onImageError={(e: any) => {
-                                    // Resim yüklenemezse initials göster
-                                    e.target.style.display = 'none';
-                                    e.target.parentElement.innerHTML = `<span class="p-avatar p-component p-avatar-circle" style="background-color: #2196F3; color: #ffffff; width: 2rem; height: 2rem; font-size: 1rem;"><span class="p-avatar-text">${currentUser.ad.charAt(0).toUpperCase()}${currentUser.soyad.charAt(0).toUpperCase()}</span></span>`;
+                                    // Resim yüklenemezse initials göster - güvenli şekilde
+                                    const target = e.target;
+                                    const parent = target?.parentElement;
+                                    if (target && parent) {
+                                        target.style.display = 'none';
+                                        parent.innerHTML = `<span class="p-avatar p-component p-avatar-circle" style="background-color: #2196F3; color: #ffffff; width: 2rem; height: 2rem; font-size: 1rem;"><span class="p-avatar-text">${currentUser.ad.charAt(0).toUpperCase()}${currentUser.soyad.charAt(0).toUpperCase()}</span></span>`;
+                                    }
                                 }}
                             />
                         ) : (
