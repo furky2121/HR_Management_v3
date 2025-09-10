@@ -53,9 +53,11 @@ const BanaAtananEgitimler = () => {
     const loadEgitimler = async () => {
         setLoading(true);
         try {
+            let token = null; // Token'ı dış scope'ta tanımla
+            
             // Token kontrolü
             if (typeof window !== 'undefined') {
-                const token = localStorage.getItem('token');
+                token = localStorage.getItem('token');
                 if (!token) {
                     router.push('/auth/login');
                     return;
@@ -65,13 +67,15 @@ const BanaAtananEgitimler = () => {
             }
 
             // Debug: Token içeriğini kontrol et
-            try {
-                const payload = JSON.parse(atob(token.split('.')[1]));
-                console.log('Token payload:', payload);
-                console.log('Token expiry:', new Date(payload.exp * 1000));
-                console.log('Current time:', new Date());
-            } catch (e) {
-                console.error('Token parse error:', e);
+            if (token) { // Token varsa kontrol et
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    console.log('Token payload:', payload);
+                    console.log('Token expiry:', new Date(payload.exp * 1000));
+                    console.log('Current time:', new Date());
+                } catch (e) {
+                    console.error('Token parse error:', e);
+                }
             }
 
             const response = await videoEgitimService.getBenimEgitimlerim();
@@ -91,7 +95,9 @@ const BanaAtananEgitimler = () => {
             if (error.message?.includes('Kullanıcı bilgisi bulunamadı') || 
                 error.message?.includes('401') ||
                 error.message?.includes('Unauthorized')) {
-                localStorage.removeItem('token');
+                if (typeof window !== 'undefined') {
+                    localStorage.removeItem('token');
+                }
                 router.push('/auth/login');
                 return;
             }
