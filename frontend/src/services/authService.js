@@ -82,6 +82,7 @@ class AuthService {
 
     // Login durumu kontrolü
     isLoggedIn() {
+        if (typeof window === 'undefined') return false;
         return !!this.getToken();
     }
 
@@ -100,6 +101,7 @@ class AuthService {
 
     // Token geçerlilik kontrolü
     isTokenValid() {
+        if (typeof window === 'undefined') return false;
         const token = this.getToken();
         if (!token) return false;
 

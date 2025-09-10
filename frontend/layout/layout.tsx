@@ -44,16 +44,18 @@ const Layout = ({ children }: ChildContainerProps) => {
     
     // Authentication check - redirect to login if not authenticated
     useEffect(() => {
-        const checkAuth = () => {
-            if (!authService.isLoggedIn() || !authService.isTokenValid()) {
-                setIsAuthenticated(false);
-                router.push('/auth/login');
-                return;
-            }
-            setIsAuthenticated(true);
-        };
-        
-        checkAuth();
+        if (typeof window !== 'undefined') {
+            const checkAuth = () => {
+                if (!authService.isLoggedIn() || !authService.isTokenValid()) {
+                    setIsAuthenticated(false);
+                    router.push('/auth/login');
+                    return;
+                }
+                setIsAuthenticated(true);
+            };
+            
+            checkAuth();
+        }
     }, [router]);
     
     useEffect(() => {

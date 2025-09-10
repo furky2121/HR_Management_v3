@@ -36,12 +36,14 @@ const BanaAtananEgitimler = () => {
 
     useEffect(() => {
         // İlk yüklendiğinde token kontrolü yap
-        const token = localStorage.getItem('token');
-        if (!token) {
-            router.push('/auth/login');
-            return;
+        if (typeof window !== 'undefined') {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                router.push('/auth/login');
+                return;
+            }
+            loadEgitimler();
         }
-        loadEgitimler();
     }, []);
 
     useEffect(() => {
@@ -52,10 +54,14 @@ const BanaAtananEgitimler = () => {
         setLoading(true);
         try {
             // Token kontrolü
-            const token = localStorage.getItem('token');
-            if (!token) {
-                router.push('/auth/login');
-                return;
+            if (typeof window !== 'undefined') {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    router.push('/auth/login');
+                    return;
+                }
+            } else {
+                return; // SSR sırasında hiçbir şey yapma
             }
 
             // Debug: Token içeriğini kontrol et
