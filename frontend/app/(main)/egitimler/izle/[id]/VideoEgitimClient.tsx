@@ -12,7 +12,7 @@ import dynamic from 'next/dynamic';
 import videoEgitimService from '@/src/services/videoEgitimService';
 
 // Dynamic import VideoPlayer to prevent SSR issues
-const VideoPlayer = dynamic(() => import('@/src/components/VideoPlayer'), {
+const VideoPlayer = dynamic(() => import('@/src/components/VideoPlayer.js'), {
     ssr: false,
     loading: () => <Skeleton height="400px" className="mb-3" />
 });
