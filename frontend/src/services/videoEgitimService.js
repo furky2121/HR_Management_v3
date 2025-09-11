@@ -28,7 +28,8 @@ class VideoEgitimService {
     }
 
     async getEgitimDetay(id, personalId = null) {
-        return ApiService.get(`/VideoEgitim/${id}`);
+        const url = personalId ? `/VideoEgitim/${id}?personelId=${personalId}` : `/VideoEgitim/${id}`;
+        return ApiService.get(url);
     }
 
     async saveEgitim(egitim) {
