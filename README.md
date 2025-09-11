@@ -367,4 +367,4 @@ Geliştirme Tarihi: 2024
 
 ---
 
-**Not**: Bu sistem kapsamlı bir İK yönetim çözümüdür ve gerçek üretim ortamında kullanılmadan önce güvenlik ve performans testlerinden geçirilmelidir.
+**Not**: Bu sistem kapsamlı bir İK yönetim çözümüdür ve gerçek üretim ortamında kullanılmadan önce güvenlik ve performans testlerinden geçirilmelidir.# Force deployment
