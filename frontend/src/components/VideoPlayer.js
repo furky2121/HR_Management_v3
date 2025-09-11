@@ -161,6 +161,11 @@ const VideoPlayer = ({ egitim, onComplete, onProgress, personelId }) => {
 
 
     const loadYouTubeAPI = () => {
+        if (typeof window === 'undefined') {
+            console.log('❌ Window object not available (SSR)');
+            return;
+        }
+        
         console.log('📡 Loading YouTube API...');
         if (window.YT && window.YT.Player) {
             console.log('✅ YouTube API already loaded');
@@ -175,10 +180,15 @@ const VideoPlayer = ({ egitim, onComplete, onProgress, personelId }) => {
             script.src = 'https://www.youtube.com/iframe_api';
             document.body.appendChild(script);
 
-            // Set up the callback for when API is ready
+            // Set up the callback for when API is ready with safety check
+            const originalCallback = window.onYouTubeIframeAPIReady;
             window.onYouTubeIframeAPIReady = () => {
                 console.log('YouTube API loaded successfully');
                 setPlayerReady(true);
+                // Restore original callback if it existed
+                if (originalCallback && typeof originalCallback === 'function') {
+                    originalCallback();
+                }
             };
         } else {
             // Script already exists, check if API is ready
@@ -202,6 +212,11 @@ const VideoPlayer = ({ egitim, onComplete, onProgress, personelId }) => {
     };
 
     const loadVimeoAPI = () => {
+        if (typeof window === 'undefined') {
+            console.log('❌ Window object not available (SSR)');
+            return;
+        }
+        
         if (window.Vimeo && window.Vimeo.Player) {
             setPlayerReady(true);
             return;
@@ -342,6 +357,11 @@ const VideoPlayer = ({ egitim, onComplete, onProgress, personelId }) => {
 
     const initializeYouTubePlayer = () => {
         console.log('🎬 Initializing YouTube player...');
+        if (typeof window === 'undefined') {
+            console.error('❌ Window object not available, cannot initialize YouTube player');
+            return;
+        }
+        
         if (!window.YT || !window.YT.Player) {
             console.error('❌ YouTube API not ready, using fallback iframe');
             createFallbackYouTubePlayer();
@@ -528,6 +548,11 @@ const VideoPlayer = ({ egitim, onComplete, onProgress, personelId }) => {
     };
 
     const initializeVimeoPlayer = () => {
+        if (typeof window === 'undefined') {
+            console.error('❌ Window object not available, cannot initialize Vimeo player');
+            return;
+        }
+        
         if (!window.Vimeo || !window.Vimeo.Player) {
             console.error('Vimeo API not ready, using fallback iframe');
             createFallbackVimeoPlayer();

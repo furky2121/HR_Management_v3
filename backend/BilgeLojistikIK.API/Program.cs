@@ -85,7 +85,11 @@ builder.Services.AddCors(options =>
                 "https://hr-management-murex.vercel.app",
                 "https://hr-management.vercel.app",
                 "https://hr-management-v1.vercel.app",
-                "https://bilgelojistik-hr.vercel.app"
+                "https://bilgelojistik-hr.vercel.app",
+                // Additional Vercel deployment URLs
+                "https://bilge-ik-yonetim-v1-calisan-yedek-v-final.vercel.app",
+                "https://bilge-ik-yonetim.vercel.app",
+                "https://hr-management-git-main-furky2121.vercel.app"
             };
             
             // Production ortamında environment variable'dan ekstra origin ekle
