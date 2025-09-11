@@ -321,68 +321,97 @@ namespace BilgeLojistikIK.API.Services
 
         public async Task<object> GetEgitimDetayAsync(int egitimId, int? personelId = null)
         {
-            var egitim = await _context.VideoEgitimler
-                .Include(e => e.Kategori)
-                .Include(e => e.VideoSorular)
-                .Include(e => e.VideoYorumlar)
-                    .ThenInclude(y => y.Personel)
-                .FirstOrDefaultAsync(e => e.Id == egitimId);
-
-            if (egitim == null) 
+            try
             {
-                // Return a proper error response instead of null
-                return new
+                Console.WriteLine($"=== GetEgitimDetayAsync called with egitimId: {egitimId}, personelId: {personelId} ===");
+                
+                var egitim = await _context.VideoEgitimler
+                    .Include(e => e.Kategori)
+                    .Include(e => e.VideoSorular)
+                    .Include(e => e.VideoYorumlar)
+                        .ThenInclude(y => y.Personel)
+                    .FirstOrDefaultAsync(e => e.Id == egitimId);
+
+                Console.WriteLine($"Egitim found: {egitim != null}, ID: {egitim?.Id}, Title: {egitim?.Baslik}");
+
+                if (egitim == null) 
                 {
-                    error = true,
-                    message = "Video eğitim bulunamadı",
-                    egitimId = egitimId
-                };
+                    Console.WriteLine($"ERROR: Video eğitim bulunamadı - egitimId: {egitimId}");
+                    return new
+                    {
+                        error = true,
+                        message = "Video eğitim bulunamadı",
+                        egitimId = egitimId
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR in GetEgitimDetayAsync (database query): {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
+                throw;
             }
 
             // Get user-specific data if personelId provided
             object izlemeKaydi = null;
             object atama = null;
             
-            if (personelId.HasValue)
+            try
             {
-                izlemeKaydi = await _context.VideoIzlemeler
-                    .Where(i => i.VideoEgitimId == egitimId && i.PersonelId == personelId)
-                    .OrderByDescending(i => i.IzlemeBaslangic)
-                    .FirstOrDefaultAsync();
+                if (personelId.HasValue)
+                {
+                    Console.WriteLine($"Getting user-specific data for personelId: {personelId}");
+                    izlemeKaydi = await _context.VideoIzlemeler
+                        .Where(i => i.VideoEgitimId == egitimId && i.PersonelId == personelId)
+                        .OrderByDescending(i => i.IzlemeBaslangic)
+                        .FirstOrDefaultAsync();
+                        
+                    atama = await _context.VideoAtamalar
+                        .FirstOrDefaultAsync(a => a.VideoEgitimId == egitimId && a.PersonelId == personelId);
                     
-                atama = await _context.VideoAtamalar
-                    .FirstOrDefaultAsync(a => a.VideoEgitimId == egitimId && a.PersonelId == personelId);
+                    Console.WriteLine($"Found izlemeKaydi: {izlemeKaydi != null}, atama: {atama != null}");
+                }
+
+                // Get statistics separately to avoid complex LINQ translation
+                Console.WriteLine("Getting statistics...");
+                var toplamIzlenme = await _context.VideoIzlemeler
+                    .CountAsync(i => i.VideoEgitimId == egitimId);
+
+                // Calculate average rating
+                var puanliIzlemeler = await _context.VideoIzlemeler
+                    .Where(i => i.VideoEgitimId == egitimId && i.Puan.HasValue)
+                    .Select(i => i.Puan.Value)
+                    .ToListAsync();
+                var ortalamaPuan = puanliIzlemeler.Any() ? puanliIzlemeler.Average() : 0.0;
+
+                // Calculate completion rate
+                var tumIzlemeler = await _context.VideoIzlemeler
+                    .Where(i => i.VideoEgitimId == egitimId)
+                    .Select(i => (double)i.IzlemeYuzdesi)
+                    .ToListAsync();
+                var tamamlanmaOrani = tumIzlemeler.Any() ? tumIzlemeler.Average() : 0.0;
+
+                Console.WriteLine($"Statistics: toplamIzlenme={toplamIzlenme}, ortalamaPuan={ortalamaPuan}, tamamlanmaOrani={tamamlanmaOrani}");
+
+                var result = new
+                {
+                    egitim,
+                    izlemeKaydi,
+                    atama,
+                    toplamIzlenme,
+                    ortalamaPuan,
+                    tamamlanmaOrani
+                };
+
+                Console.WriteLine("Successfully created result object");
+                return result;
             }
-
-            // Get statistics separately to avoid complex LINQ translation
-            var toplamIzlenme = await _context.VideoIzlemeler
-                .CountAsync(i => i.VideoEgitimId == egitimId);
-
-            // Calculate average rating
-            var puanliIzlemeler = await _context.VideoIzlemeler
-                .Where(i => i.VideoEgitimId == egitimId && i.Puan.HasValue)
-                .Select(i => i.Puan.Value)
-                .ToListAsync();
-            var ortalamaPuan = puanliIzlemeler.Any() ? puanliIzlemeler.Average() : 0.0;
-
-            // Calculate completion rate
-            var tumIzlemeler = await _context.VideoIzlemeler
-                .Where(i => i.VideoEgitimId == egitimId)
-                .Select(i => (double)i.IzlemeYuzdesi)
-                .ToListAsync();
-            var tamamlanmaOrani = tumIzlemeler.Any() ? tumIzlemeler.Average() : 0.0;
-
-            var result = new
+            catch (Exception ex)
             {
-                egitim,
-                izlemeKaydi,
-                atama,
-                toplamIzlenme,
-                ortalamaPuan,
-                tamamlanmaOrani
-            };
-
-            return result;
+                Console.WriteLine($"ERROR in GetEgitimDetayAsync (statistics/user data): {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
+                throw;
+            }
         }
 
         public async Task<bool> UpdateVideoProgressAsync(int personelId, object progressDataObj)

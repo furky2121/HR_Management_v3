@@ -70,11 +70,42 @@ class ApiService {
                     status: response.status,
                     statusText: response.statusText,
                     url: url,
-                    data: data
+                    data: data,
+                    timestamp: new Date().toISOString()
                 };
                 console.error('API Error Details:', errorDetails);
                 window.lastApiError = errorDetails; // Debug için
-                throw new Error(data?.message || data?.title || `HTTP ${response.status}: ${response.statusText}` || 'Bir hata oluştu');
+                
+                // Provide more specific error messages based on status code
+                let errorMessage = data?.message || data?.title;
+                if (!errorMessage) {
+                    switch (response.status) {
+                        case 400:
+                            errorMessage = 'Geçersiz istek.';
+                            break;
+                        case 401:
+                            errorMessage = 'Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.';
+                            break;
+                        case 403:
+                            errorMessage = 'Bu işlem için yetkiniz bulunmuyor.';
+                            break;
+                        case 404:
+                            errorMessage = 'İstenen kaynak bulunamadı.';
+                            break;
+                        case 500:
+                            errorMessage = 'Sunucu hatası oluştu. Lütfen tekrar deneyin.';
+                            break;
+                        case 502:
+                        case 503:
+                        case 504:
+                            errorMessage = 'Sunucu şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin.';
+                            break;
+                        default:
+                            errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                    }
+                }
+                
+                throw new Error(errorMessage || 'Bir hata oluştu');
             }
 
             return data;

@@ -136,16 +136,13 @@ app.UseStaticFiles();
 
 app.UseCors("AllowedOrigins");
 
-// Request logging middleware - Sadece development'da
-if (app.Environment.IsDevelopment())
+// Request logging middleware - Development ve Production'da
+app.Use(async (context, next) =>
 {
-    app.Use(async (context, next) =>
-    {
-        Console.WriteLine($"=== REQUEST: {context.Request.Method} {context.Request.Path} ===");
-        await next.Invoke();
-        Console.WriteLine($"=== RESPONSE: {context.Response.StatusCode} ===");
-    });
-}
+    Console.WriteLine($"=== REQUEST: {context.Request.Method} {context.Request.Path} from {context.Request.Headers.Origin} ===");
+    await next.Invoke();
+    Console.WriteLine($"=== RESPONSE: {context.Response.StatusCode} ===");
+});
 
 app.UseAuthentication();
 app.UseAuthorization();

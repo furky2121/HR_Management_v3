@@ -70,30 +70,63 @@ const VideoEgitimClient = ({ id }: Props) => {
         setLoading(true);
         
         try {
+            console.log('Loading egitim with ID:', id, 'PersonelId:', personelId);
+            console.log('API Base URL:', process.env.NEXT_PUBLIC_API_BASE_URL);
+            
             const response = await videoEgitimService.getEgitimDetay(id, personelId as any);
+            console.log('API Response:', response);
+            
             if (response.success) {
                 const egitimData = response.data.egitim || response.data;
+                console.log('Egitim data:', egitimData);
                 setEgitim(egitimData);
                 
                 if (egitimData.kategoriId) {
                     loadRelatedVideos(egitimData.kategoriId);
                 }
             } else {
+                console.error('API Error Response:', response);
                 toast.current?.show({
                     severity: 'error',
                     summary: 'Hata',
                     detail: response.message || 'Video eğitim bilgileri alınamadı.'
                 });
-                router.push('/egitimler');
+                // Don't redirect immediately, give user option to retry
+                setTimeout(() => {
+                    router.push('/egitimler');
+                }, 3000);
             }
         } catch (error) {
             console.error('Error loading egitim:', error);
+            
+            // Provide more detailed error information
+            let errorMessage = 'Video eğitim yüklenirken bir hata oluştu.';
+            
+            if (error instanceof Error) {
+                if (error.message.includes('Failed to fetch')) {
+                    errorMessage = 'Sunucuya bağlanılamıyor. Lütfen internet bağlantınızı kontrol edin ve tekrar deneyin.';
+                } else if (error.message.includes('NetworkError')) {
+                    errorMessage = 'Ağ hatası. Sunucu şu anda erişilemiyor.';
+                } else if (error.message.includes('500')) {
+                    errorMessage = 'Sunucu hatası oluştu. Lütfen daha sonra tekrar deneyin.';
+                } else if (error.message.includes('401') || error.message.includes('403')) {
+                    errorMessage = 'Yetki hatası. Lütfen tekrar giriş yapın.';
+                } else if (error.message.includes('404')) {
+                    errorMessage = 'Video eğitim bulunamadı.';
+                }
+            }
+            
             toast.current?.show({
                 severity: 'error',
                 summary: 'Hata',
-                detail: 'Video eğitim yüklenirken bir hata oluştu.'
+                detail: errorMessage,
+                life: 5000
             });
-            router.push('/egitimler');
+            
+            // Don't redirect immediately for network errors, give user option to retry
+            setTimeout(() => {
+                router.push('/egitimler');
+            }, 5000);
         } finally {
             setLoading(false);
         }
