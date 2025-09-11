@@ -18,7 +18,9 @@
       "Bash(curl:*)",
       "Bash(npm run build:*)",
       "Bash(npm ls:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "WebFetch(domain:hr-management-v1.vercel.app)",
+      "WebFetch(domain:bilgelojistik-api.onrender.com)"
     ],
     "deny": [],
     "ask": []

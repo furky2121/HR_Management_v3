@@ -8,14 +8,8 @@ import { Card } from 'primereact/card';
 import { Badge } from 'primereact/badge';
 import { Skeleton } from 'primereact/skeleton';
 import { Dialog } from 'primereact/dialog';
-import dynamic from 'next/dynamic';
+import VideoPlayer from '@/src/components/VideoPlayer.js';
 import videoEgitimService from '@/src/services/videoEgitimService';
-
-// Dynamic import VideoPlayer to prevent SSR issues
-const VideoPlayer = dynamic(() => import('@/src/components/VideoPlayer.js'), {
-    ssr: false,
-    loading: () => <Skeleton height="400px" className="mb-3" />
-});
 
 interface Props {
     id: string;
