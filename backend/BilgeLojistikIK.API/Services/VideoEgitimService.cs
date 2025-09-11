@@ -321,11 +321,12 @@ namespace BilgeLojistikIK.API.Services
 
         public async Task<object> GetEgitimDetayAsync(int egitimId, int? personelId = null)
         {
+            VideoEgitim egitim;
             try
             {
                 Console.WriteLine($"=== GetEgitimDetayAsync called with egitimId: {egitimId}, personelId: {personelId} ===");
                 
-                var egitim = await _context.VideoEgitimler
+                egitim = await _context.VideoEgitimler
                     .Include(e => e.Kategori)
                     .Include(e => e.VideoSorular)
                     .Include(e => e.VideoYorumlar)
