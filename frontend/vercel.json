@@ -3,5 +3,35 @@
   "outputDirectory": ".next",
   "framework": "nextjs",
   "installCommand": "npm install",
-  "devCommand": "npm run dev"
+  "devCommand": "npm run dev",
+  "env": {
+    "NEXT_PUBLIC_API_BASE_URL": "https://your-api.onrender.com/api",
+    "NEXT_PUBLIC_FILE_BASE_URL": "https://your-api.onrender.com"
+  },
+  "regions": ["fra1"],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://your-api.onrender.com/api/:path*"
+    }
+  ]
 }

@@ -11,8 +11,11 @@ dist/
 # Environment files
 .env
 .env.local
-.env.production.local
 .env.development.local
+.env.test.local
+
+# Keep .env.production for reference but ensure sensitive values are in deployment platform
+# .env.production should use placeholder values only
 
 # Logs
 logs/
@@ -63,6 +66,11 @@ backups/
 # Upload files (production'da farklı storage kullanılacak)
 wwwroot/uploads/
 uploads/
+backend/BilgeLojistikIK.API/wwwroot/uploads/
+
+# Keep directory structure but ignore uploaded files
+!wwwroot/uploads/.gitkeep
+!backend/BilgeLojistikIK.API/wwwroot/uploads/.gitkeep
 
 # SSL certificates
 certificates/

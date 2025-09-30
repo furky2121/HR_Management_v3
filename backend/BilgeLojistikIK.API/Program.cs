@@ -50,8 +50,10 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Add Entity Framework
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
+    ?? builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<BilgeLojistikIKContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
+    options.UseNpgsql(connectionString,
         o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 
 // Add Services
@@ -88,30 +90,31 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowedOrigins",
         corsBuilder =>
         {
-            var allowedOrigins = new List<string> { 
+            var allowedOrigins = new List<string> {
                 "http://localhost:3000",
                 "http://localhost:3001",
-                "http://localhost:3002", 
-                "https://hr-management-murex.vercel.app",
-                "https://hr-management.vercel.app",
-                "https://hr-management-v1.vercel.app",
-                "https://bilgelojistik-hr.vercel.app",
-                // Additional Vercel deployment URLs
-                "https://bilge-ik-yonetim-v1-calisan-yedek-v-final.vercel.app",
-                "https://bilge-ik-yonetim.vercel.app",
-                "https://hr-management-git-main-furky2121.vercel.app"
+                "http://localhost:3002"
             };
-            
-            // Production ortamında environment variable'dan ekstra origin ekle
-            if (builder.Environment.IsProduction())
+
+            // Production ortamında environment variable'dan frontend URL'leri ekle
+            var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL");
+            if (!string.IsNullOrEmpty(frontendUrl))
             {
-                var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL");
-                if (!string.IsNullOrEmpty(frontendUrl) && !allowedOrigins.Contains(frontendUrl))
-                {
-                    allowedOrigins.Add(frontendUrl);
-                }
+                allowedOrigins.Add(frontendUrl);
             }
-            
+
+            // Vercel deployment URL'lerini environment variable'dan ekle (virgülle ayrılmış)
+            var additionalOrigins = Environment.GetEnvironmentVariable("ADDITIONAL_CORS_ORIGINS");
+            if (!string.IsNullOrEmpty(additionalOrigins))
+            {
+                var origins = additionalOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(o => o.Trim())
+                    .Where(o => !string.IsNullOrWhiteSpace(o));
+                allowedOrigins.AddRange(origins);
+            }
+
+            Console.WriteLine($"CORS Allowed Origins: {string.Join(", ", allowedOrigins)}");
+
             corsBuilder.WithOrigins(allowedOrigins.ToArray())
                       .AllowAnyHeader()
                       .AllowAnyMethod()
@@ -178,6 +181,15 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Health check endpoint
+app.MapGet("/health", () => Results.Ok(new
+{
+    status = "Healthy",
+    timestamp = DateTime.UtcNow,
+    version = "1.0.0",
+    environment = app.Environment.EnvironmentName
+}));
 
 // Apply migrations automatically in production
 using (var scope = app.Services.CreateScope())
