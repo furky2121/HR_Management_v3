@@ -28,10 +28,10 @@ namespace BilgeLojistikIK.API.Services
             if (personel == null) return false;
 
             var maxLimit = await GetMaxAvansLimit(personelId);
-            
-            // Bekleyen ve onaylanan avansları hesaba kat
+
+            // Bekleyen ve onaylanan avansları hesaba kat (yeni talep dahil)
             var mevcutAvanslar = await _context.AvansTalepleri
-                .Where(a => a.PersonelId == personelId 
+                .Where(a => a.PersonelId == personelId
                     && (a.OnayDurumu == "Beklemede" || a.OnayDurumu == "Onaylandı")
                     && a.TalepTarihi.Month == DateTime.Now.Month
                     && a.TalepTarihi.Year == DateTime.Now.Year)

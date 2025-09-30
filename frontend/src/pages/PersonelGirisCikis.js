@@ -488,29 +488,31 @@ const PersonelGirisCikis = () => {
 
                 <div className="field">
                     <label htmlFor="girisTarihi">Giriş Tarihi *</label>
-                    <Calendar 
+                    <Calendar
                         id="girisTarihi"
-                        value={selectedGirisCikis?.girisTarihi} 
-                        onChange={(e) => onDateChange(e, 'girisTarihi')} 
-                        showTime 
+                        value={selectedGirisCikis?.girisTarihi}
+                        onChange={(e) => onDateChange(e, 'girisTarihi')}
+                        showTime
                         showSeconds={false}
                         dateFormat="dd/mm/yy"
                         timeFormat="24"
                         placeholder="dd/mm/yyyy ss:dd"
+                        locale="tr"
                     />
                 </div>
 
                 <div className="field">
                     <label htmlFor="cikisTarihi">Çıkış Tarihi</label>
-                    <Calendar 
+                    <Calendar
                         id="cikisTarihi"
-                        value={selectedGirisCikis?.cikisTarihi} 
-                        onChange={(e) => onDateChange(e, 'cikisTarihi')} 
-                        showTime 
+                        value={selectedGirisCikis?.cikisTarihi}
+                        onChange={(e) => onDateChange(e, 'cikisTarihi')}
+                        showTime
                         showSeconds={false}
                         dateFormat="dd/mm/yy"
                         timeFormat="24"
                         placeholder="dd/mm/yyyy ss:dd"
+                        locale="tr"
                     />
                 </div>
 

@@ -137,15 +137,18 @@ const BanaAtananEgitimler = () => {
     };
 
     const getEgitimDurumu = (egitim) => {
+        // Öncelikle database'den gelen tamamlanma durumunu kontrol et
+        const tamamlandiMi = egitim.TamamlandiMi || egitim.tamamlandiMi || false;
         const izlemeYuzdesi = egitim.IzlemeYuzdesi || egitim.izlemeYuzdesi || 0;
         const izlenmeMinimum = egitim.IzlenmeMinimum || egitim.izlenmeMinimum || 80;
-        
-        if (izlemeYuzdesi === 0) {
-            return { label: 'Yeni', value: 'yeni', severity: 'info' };
-        } else if (izlemeYuzdesi >= izlenmeMinimum) {
+
+        // DB'de tamamlandı olarak işaretlenmişse veya minimum orana ulaşmışsa
+        if (tamamlandiMi || izlemeYuzdesi >= izlenmeMinimum) {
             return { label: 'Tamamlandı', value: 'tamamlandi', severity: 'success' };
-        } else {
+        } else if (izlemeYuzdesi > 0) {
             return { label: 'Devam Ediyor', value: 'devam', severity: 'warning' };
+        } else {
+            return { label: 'Yeni', value: 'yeni', severity: 'info' };
         }
     };
 

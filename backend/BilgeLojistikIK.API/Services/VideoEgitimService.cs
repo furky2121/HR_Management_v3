@@ -17,6 +17,9 @@ namespace BilgeLojistikIK.API.Services
         Task<VideoIzleme> IzlemeKaydetAsync(VideoIzleme izleme);
         Task<bool> EgitimTamamlandiMiAsync(int videoEgitimId, int personelId);
         Task<Dictionary<string, object>> GetIstatistiklerAsync(int? personelId = null, int? departmanId = null);
+        Task<Dictionary<string, object>> GetRaporIstatistikleriAsync();
+        Task<List<object>> GetPersonelEgitimOzetiAsync();
+        Task<List<object>> GetDepartmanRaporuAsync(int year);
         Task<List<VideoAtama>> GetBekleyenEgitimlerAsync(int personelId);
         Task<bool> HatirlatmaGonderAsync(int atamaId);
         Task<VideoSertifika> SertifikaOlusturAsync(int videoEgitimId, int personelId);
@@ -24,6 +27,7 @@ namespace BilgeLojistikIK.API.Services
         Task<object> GetEgitimDetayAsync(int egitimId, int? personelId = null);
         Task<bool> UpdateVideoProgressAsync(int personelId, object progressData);
         Task<object> GetVideoDurationAsync(string videoUrl);
+        Task<List<object>> GetAylikEgitimTrendiAsync(int year = 0);
     }
 
     public class VideoEgitimService : IVideoEgitimService
@@ -108,7 +112,7 @@ namespace BilgeLojistikIK.API.Services
                     // Mevcut izleme kaydını güncelle
                     mevcutIzleme.ToplamIzlenenSure += izleme.ToplamIzlenenSure;
                     mevcutIzleme.IzlemeYuzdesi = izleme.IzlemeYuzdesi;
-                    mevcutIzleme.IzlemeBitis = DateTime.Now;
+                    mevcutIzleme.IzlemeBitis = DateTime.UtcNow;
 
                     var egitim = await _context.VideoEgitimler.FindAsync(izleme.VideoEgitimId);
                     if (egitim != null && mevcutIzleme.IzlemeYuzdesi >= egitim.IzlenmeMinimum)
@@ -116,7 +120,7 @@ namespace BilgeLojistikIK.API.Services
                         Console.WriteLine($"Eğitim tamamlandı - IzlenmeYuzdesi: {mevcutIzleme.IzlemeYuzdesi}, Minimum: {egitim.IzlenmeMinimum}");
                         
                         mevcutIzleme.TamamlandiMi = true;
-                        mevcutIzleme.TamamlanmaTarihi = DateTime.Now;
+                        mevcutIzleme.TamamlanmaTarihi = DateTime.UtcNow;
 
                         // Atama durumunu güncelle
                         var atama = await _context.VideoAtamalar
@@ -125,7 +129,7 @@ namespace BilgeLojistikIK.API.Services
                         if (atama != null)
                         {
                             atama.Durum = "Tamamlandı";
-                            atama.TamamlanmaTarihi = DateTime.Now;
+                            atama.TamamlanmaTarihi = DateTime.UtcNow;
                         }
                     }
                 }
@@ -250,7 +254,7 @@ namespace BilgeLojistikIK.API.Services
             // Burada email veya bildirim gönderme işlemi yapılacak
             // Şimdilik sadece veritabanını güncelliyoruz
             atama.HatirlatmaGonderildiMi = true;
-            atama.SonHatirlatmaTarihi = DateTime.Now;
+            atama.SonHatirlatmaTarihi = DateTime.UtcNow;
             
             await _context.SaveChangesAsync();
             return true;
@@ -258,12 +262,26 @@ namespace BilgeLojistikIK.API.Services
 
         public async Task<VideoSertifika> SertifikaOlusturAsync(int videoEgitimId, int personelId)
         {
+            Console.WriteLine($"SertifikaOlusturAsync called - videoEgitimId: {videoEgitimId}, personelId: {personelId}");
+
             var izleme = await _context.VideoIzlemeler
-                .FirstOrDefaultAsync(i => i.VideoEgitimId == videoEgitimId && 
-                                         i.PersonelId == personelId && 
+                .FirstOrDefaultAsync(i => i.VideoEgitimId == videoEgitimId &&
+                                         i.PersonelId == personelId &&
                                          i.TamamlandiMi);
 
-            if (izleme == null) return null;
+            Console.WriteLine($"Found izleme record: {izleme != null}");
+            if (izleme == null)
+            {
+                // Check if any izleme record exists at all
+                var anyIzleme = await _context.VideoIzlemeler
+                    .FirstOrDefaultAsync(i => i.VideoEgitimId == videoEgitimId && i.PersonelId == personelId);
+                Console.WriteLine($"Any izleme record exists: {anyIzleme != null}");
+                if (anyIzleme != null)
+                {
+                    Console.WriteLine($"Existing izleme - TamamlandiMi: {anyIzleme.TamamlandiMi}, IzlemeYuzdesi: {anyIzleme.IzlemeYuzdesi}");
+                }
+                return null;
+            }
 
             // Quiz puanını hesapla
             var sorular = await _context.VideoSorular
@@ -284,15 +302,17 @@ namespace BilgeLojistikIK.API.Services
                 }
             }
 
+            var sertifikaNo = $"CERT-{DateTime.UtcNow:yyyyMMdd}-{personelId:D4}-{videoEgitimId:D4}";
             var sertifika = new VideoSertifika
             {
                 VideoEgitimId = videoEgitimId,
                 PersonelId = personelId,
-                SertifikaNo = $"CERT-{DateTime.Now:yyyyMMdd}-{personelId:D4}-{videoEgitimId:D4}",
-                VerilisTarihi = DateTime.Now,
-                GecerlilikTarihi = DateTime.Now.AddYears(1),
+                SertifikaNo = sertifikaNo,
+                VerilisTarihi = DateTime.UtcNow,
+                GecerlilikTarihi = DateTime.UtcNow.AddYears(1),
                 QuizPuani = quizPuani,
-                IzlemeYuzdesi = izleme.IzlemeYuzdesi
+                IzlemeYuzdesi = izleme.IzlemeYuzdesi,
+                SertifikaUrl = $"/api/VideoEgitim/sertifika/download/{sertifikaNo}"
             };
 
             _context.VideoSertifikalar.Add(sertifika);
@@ -440,12 +460,12 @@ namespace BilgeLojistikIK.API.Services
                     {
                         PersonelId = personelId,
                         VideoEgitimId = videoEgitimId,
-                        IzlemeBaslangic = DateTime.Now,
+                        IzlemeBaslangic = DateTime.UtcNow,
                         ToplamIzlenenSure = toplamIzlenenSure,
                         IzlemeYuzdesi = izlemeYuzdesi,
                         TamamlandiMi = tamamlandiMi,
-                        IzlemeBitis = tamamlandiMi ? DateTime.Now : null,
-                        TamamlanmaTarihi = tamamlandiMi ? DateTime.Now : null,
+                        IzlemeBitis = tamamlandiMi ? DateTime.UtcNow : null,
+                        TamamlanmaTarihi = tamamlandiMi ? DateTime.UtcNow : null,
                         CihazTipi = (string)progressData.CihazTipi,
                         VideoPlatform = (string)progressData.VideoPlatform,
                         IzlemeBaslangicSaniye = (int)progressData.IzlemeBaslangicSaniye,
@@ -467,8 +487,8 @@ namespace BilgeLojistikIK.API.Services
                     if (tamamlandiMi && !mevcutIzleme.TamamlandiMi)
                     {
                         mevcutIzleme.TamamlandiMi = true;
-                        mevcutIzleme.IzlemeBitis = DateTime.Now;
-                        mevcutIzleme.TamamlanmaTarihi = DateTime.Now;
+                        mevcutIzleme.IzlemeBitis = DateTime.UtcNow;
+                        mevcutIzleme.TamamlanmaTarihi = DateTime.UtcNow;
                         Console.WriteLine("Video marked as completed");
                     }
                 }
@@ -482,7 +502,7 @@ namespace BilgeLojistikIK.API.Services
                     if (atama != null && atama.Durum != "Tamamlandı")
                     {
                         atama.Durum = "Tamamlandı";
-                        atama.TamamlanmaTarihi = DateTime.Now;
+                        atama.TamamlanmaTarihi = DateTime.UtcNow;
                         Console.WriteLine("VideoAtama status updated to 'Tamamlandı'");
                     }
                 }
@@ -759,6 +779,286 @@ namespace BilgeLojistikIK.API.Services
             var variableDuration = hash % 720; // 0-12 dakika arasında değişken
             
             return baseDuration + variableDuration;
+        }
+
+        public async Task<Dictionary<string, object>> GetRaporIstatistikleriAsync()
+        {
+            var istatistikler = new Dictionary<string, object>();
+
+            try
+            {
+                // Genel video eğitim istatistikleri
+                var toplamVideoEgitim = await _context.VideoEgitimler.CountAsync(e => e.Aktif);
+                var toplamAtama = await _context.VideoAtamalar.CountAsync();
+                var tamamlananAtama = await _context.VideoAtamalar.CountAsync(a => a.Durum == "Tamamlandı");
+                var devamEdenAtama = await _context.VideoAtamalar.CountAsync(a => a.Durum == "Devam Ediyor");
+                var atandiAtama = await _context.VideoAtamalar.CountAsync(a => a.Durum == "Atandı");
+                var suresiGectiAtama = await _context.VideoAtamalar.CountAsync(a => a.Durum == "Süresi Geçti");
+
+                // Katılımcı sayısı (benzersiz personel sayısı)
+                var toplamKatilimci = await _context.VideoAtamalar
+                    .Where(a => a.PersonelId.HasValue)
+                    .Select(a => a.PersonelId.Value)
+                    .Distinct()
+                    .CountAsync();
+
+                // Ortalama izleme süresi hesaplama (güvenli)
+                var izlemeKayitlari = await _context.VideoIzlemeler.ToListAsync();
+                double ortalamaIzlemeSuresi = 0;
+
+                if (izlemeKayitlari.Any())
+                {
+                    var toplamIzlemeSuresi = izlemeKayitlari.Sum(i => i.ToplamIzlenenSure);
+                    ortalamaIzlemeSuresi = Math.Round((double)toplamIzlemeSuresi / izlemeKayitlari.Count / 60.0, 1);
+                }
+
+                // Tamamlanma oranı
+                var tamamlanmaOrani = toplamAtama > 0 ? (int)Math.Round((double)tamamlananAtama * 100 / toplamAtama) : 0;
+
+                istatistikler["toplamVideoEgitim"] = toplamVideoEgitim;
+                istatistikler["tamamlananAtama"] = tamamlananAtama;
+                istatistikler["devamEdenAtama"] = devamEdenAtama;
+                istatistikler["atandiAtama"] = atandiAtama;
+                istatistikler["suresiGectiAtama"] = suresiGectiAtama;
+                istatistikler["toplamKatilimci"] = toplamKatilimci;
+                istatistikler["ortalamaIzlemeSuresi"] = ortalamaIzlemeSuresi;
+                istatistikler["tamamlanmaOrani"] = tamamlanmaOrani;
+
+                // Debug log ekle
+                Console.WriteLine($"DEBUG - Atama Durumları: Tamamlanan={tamamlananAtama}, DevamEden={devamEdenAtama}, Atandi={atandiAtama}, SuresiGecti={suresiGectiAtama}");
+
+                return istatistikler;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"GetRaporIstatistikleriAsync error: {ex.Message}");
+                // Return empty stats on error
+                istatistikler["toplamVideoEgitim"] = 0;
+                istatistikler["tamamlananAtama"] = 0;
+                istatistikler["devamEdenAtama"] = 0;
+                istatistikler["atandiAtama"] = 0;
+                istatistikler["suresiGectiAtama"] = 0;
+                istatistikler["toplamKatilimci"] = 0;
+                istatistikler["ortalamaIzlemeSuresi"] = 0.0;
+                istatistikler["tamamlanmaOrani"] = 0;
+                return istatistikler;
+            }
+        }
+
+        public async Task<List<object>> GetPersonelEgitimOzetiAsync()
+        {
+            var personelOzeti = new List<object>();
+
+            try
+            {
+                var personelListesi = await _context.Personeller
+                    .Include(p => p.Pozisyon)
+                        .ThenInclude(po => po.Departman)
+                    .Where(p => p.Aktif)
+                    .Take(50) // Performans için limit ekle
+                    .ToListAsync();
+
+                foreach (var personel in personelListesi)
+                {
+                    try
+                    {
+                        // Personelin video eğitim atamalarını al
+                        var toplamVideoEgitim = await _context.VideoAtamalar
+                            .CountAsync(a => a.PersonelId == personel.Id);
+
+                        var tamamlanan = await _context.VideoAtamalar
+                            .CountAsync(a => a.PersonelId == personel.Id && a.Durum == "Tamamlandı");
+
+                        // İzleme yüzdesi hesaplama
+                        var toplamIzleme = await _context.VideoIzlemeler
+                            .Where(i => i.PersonelId == personel.Id)
+                            .ToListAsync();
+
+                        var izlemeYuzdesi = 0.0;
+                        var toplamSure = 0.0;
+
+                        if (toplamIzleme.Any())
+                        {
+                            izlemeYuzdesi = Math.Round(toplamIzleme.Average(i => i.IzlemeYuzdesi));
+                            toplamSure = Math.Round(toplamIzleme.Sum(i => i.ToplamIzlenenSure) / 60.0, 1); // Dakika olarak
+                        }
+
+                        if (toplamVideoEgitim > 0) // Sadece eğitim atanmış personeli dahil et
+                        {
+                            personelOzeti.Add(new
+                            {
+                                id = personel.Id,
+                                personelAd = $"{personel.Ad} {personel.Soyad}",
+                                departman = personel.Pozisyon?.Departman?.Ad ?? "Bilinmiyor",
+                                toplamVideoEgitim = toplamVideoEgitim,
+                                tamamlanan = tamamlanan,
+                                izlemeYuzdesi = (int)izlemeYuzdesi,
+                                toplamSure = (int)toplamSure
+                            });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error processing personnel {personel.Id}: {ex.Message}");
+                        continue;
+                    }
+                }
+
+                return personelOzeti.OrderBy(p => ((dynamic)p).departman).ThenBy(p => ((dynamic)p).personelAd).ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"GetPersonelEgitimOzetiAsync error: {ex.Message}");
+                return personelOzeti; // Return empty list on error
+            }
+        }
+
+        public async Task<List<object>> GetDepartmanRaporuAsync(int year)
+        {
+            var departmanRaporu = new List<object>();
+
+            try
+            {
+                var departmanlar = await _context.Departmanlar
+                    .Where(d => d.Aktif)
+                    .ToListAsync();
+
+                foreach (var departman in departmanlar)
+                {
+                    try
+                    {
+                        // Departmandaki personelleri al
+                        var departmanPersonelleri = await _context.Personeller
+                            .Where(p => p.Pozisyon.DepartmanId == departman.Id && p.Aktif)
+                            .Select(p => p.Id)
+                            .ToListAsync();
+
+                        if (!departmanPersonelleri.Any()) continue;
+
+                        // Video eğitim istatistikleri
+                        var toplamVideoEgitim = await _context.VideoAtamalar
+                            .Where(a => a.DepartmanId == departman.Id ||
+                                       (a.PersonelId.HasValue && departmanPersonelleri.Contains(a.PersonelId.Value)))
+                            .Select(a => a.VideoEgitimId)
+                            .Distinct()
+                            .CountAsync();
+
+                        var toplamKatilimci = departmanPersonelleri.Count;
+
+                        // Departman bazlı izleme istatistikleri
+                        var izlemeVerileri = await _context.VideoIzlemeler
+                            .Where(i => departmanPersonelleri.Contains(i.PersonelId))
+                            .ToListAsync();
+
+                        var ortalamaIzlemeSuresi = 0.0;
+                        var tamamlanmaOrani = 0;
+
+                        if (izlemeVerileri.Any())
+                        {
+                            ortalamaIzlemeSuresi = Math.Round(izlemeVerileri.Average(i => i.ToplamIzlenenSure) / 60.0, 1);
+
+                            var tamamlananSayisi = await _context.VideoAtamalar
+                                .CountAsync(a => a.PersonelId.HasValue && departmanPersonelleri.Contains(a.PersonelId.Value) && a.Durum == "Tamamlandı");
+                            var toplamAtamaSayisi = await _context.VideoAtamalar
+                                .CountAsync(a => a.PersonelId.HasValue && departmanPersonelleri.Contains(a.PersonelId.Value));
+
+                            tamamlanmaOrani = toplamAtamaSayisi > 0 ? (int)Math.Round((double)tamamlananSayisi * 100 / toplamAtamaSayisi) : 0;
+                        }
+
+                        departmanRaporu.Add(new
+                        {
+                            id = departman.Id,
+                            departman = departman.Ad,
+                            toplamVideoEgitim = toplamVideoEgitim,
+                            toplamKatilimci = toplamKatilimci,
+                            ortalamaIzlemeSuresi = (int)ortalamaIzlemeSuresi,
+                            tamamlanmaOrani = tamamlanmaOrani
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error processing department {departman.Ad}: {ex.Message}");
+                        continue;
+                    }
+                }
+
+                return departmanRaporu.OrderBy(d => ((dynamic)d).departman).ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"GetDepartmanRaporuAsync error: {ex.Message}");
+                return departmanRaporu; // Return empty list on error
+            }
+        }
+
+        public async Task<List<object>> GetAylikEgitimTrendiAsync(int year = 0)
+        {
+            var aylikTrend = new List<object>();
+
+            try
+            {
+                var currentYear = year == 0 ? DateTime.Now.Year : year;
+
+                // 12 aylık veri için tüm ayları initialize et
+                var aylar = new string[] { "Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara" };
+
+                for (int ay = 1; ay <= 12; ay++)
+                {
+                    try
+                    {
+                        // Bu ay için video eğitim atama sayısı
+                        var egitimSayisi = await _context.VideoAtamalar
+                            .Where(a => a.AtamaTarihi.Year == currentYear && a.AtamaTarihi.Month == ay)
+                            .CountAsync();
+
+                        // Bu ay için benzersiz katılımcı sayısı
+                        var katilimciSayisi = await _context.VideoAtamalar
+                            .Where(a => a.AtamaTarihi.Year == currentYear && a.AtamaTarihi.Month == ay && a.PersonelId.HasValue)
+                            .Select(a => a.PersonelId.Value)
+                            .Distinct()
+                            .CountAsync();
+
+                        aylikTrend.Add(new
+                        {
+                            ay = aylar[ay - 1],
+                            ayNumarasi = ay,
+                            egitim = egitimSayisi,
+                            katilimci = katilimciSayisi
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error processing month {ay}: {ex.Message}");
+                        // Hata durumunda boş veri ekle
+                        aylikTrend.Add(new
+                        {
+                            ay = aylar[ay - 1],
+                            ayNumarasi = ay,
+                            egitim = 0,
+                            katilimci = 0
+                        });
+                    }
+                }
+
+                return aylikTrend;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"GetAylikEgitimTrendiAsync error: {ex.Message}");
+                // Hata durumunda boş 12 aylık veri döndür
+                var aylar = new string[] { "Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara" };
+                for (int ay = 1; ay <= 12; ay++)
+                {
+                    aylikTrend.Add(new
+                    {
+                        ay = aylar[ay - 1],
+                        ayNumarasi = ay,
+                        egitim = 0,
+                        katilimci = 0
+                    });
+                }
+                return aylikTrend;
+            }
         }
     }
 }

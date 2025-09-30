@@ -15,6 +15,13 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.MaxDepth = 64;
         options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+
+        // UTF-8 encoding support for Turkish characters
+        options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.WriteIndented = false;
+        options.JsonSerializerOptions.AllowTrailingCommas = true;
+        options.JsonSerializerOptions.ReadCommentHandling = System.Text.Json.JsonCommentHandling.Skip;
     })
     .ConfigureApiBehaviorOptions(options =>
     {
@@ -52,6 +59,9 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IIzinService, IzinService>();
 builder.Services.AddScoped<IVideoEgitimService, VideoEgitimService>();
 builder.Services.AddScoped<IAvansService, AvansService>();
+builder.Services.AddScoped<IMasrafService, MasrafService>();
+builder.Services.AddScoped<ICVService, CVService>();
+builder.Services.AddScoped<IStatusService, StatusService>();
 
 // Add JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -115,6 +125,14 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(optio
     options.MultipartBodyLengthLimit = 10 * 1024 * 1024; // 10MB
 });
 
+// Configure request localization for UTF-8 support
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    options.DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture("tr-TR");
+    options.SupportedCultures = new[] { new System.Globalization.CultureInfo("tr-TR") };
+    options.SupportedUICultures = new[] { new System.Globalization.CultureInfo("tr-TR") };
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -134,7 +152,19 @@ if (!app.Environment.IsDevelopment())
 // Static files
 app.UseStaticFiles();
 
+// Aday fotoğrafları için özel static file mapping
+var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+if (!Directory.Exists(uploadsPath))
+    Directory.CreateDirectory(uploadsPath);
+
+var adayFotografPath = Path.Combine(uploadsPath, "aday-fotograflar");
+if (!Directory.Exists(adayFotografPath))
+    Directory.CreateDirectory(adayFotografPath);
+
 app.UseCors("AllowedOrigins");
+
+// Use request localization for UTF-8 support
+app.UseRequestLocalization();
 
 // Request logging middleware - Development ve Production'da
 app.Use(async (context, next) =>

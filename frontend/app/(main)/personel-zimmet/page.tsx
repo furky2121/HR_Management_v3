@@ -46,6 +46,35 @@ interface PersonelZimmetData {
     guncellemeTarihi?: Date;
 }
 
+interface GroupedZimmetData {
+    personelId: number;
+    personelAdSoyad: string;
+    departmanAd: string;
+    pozisyonAd: string;
+    personelEmail: string;
+    personelTelefon: string;
+    toplamZimmet: number;
+    aktifZimmet: number;
+    iadeEdilmis: number;
+    sonZimmetTarihi: Date;
+    zimmetDetaylar: ZimmetDetay[];
+}
+
+interface ZimmetDetay {
+    id: number;
+    zimmetStokId: number;
+    malzemeAdi: string;
+    marka: string;
+    model: string;
+    seriNo: string;
+    zimmetMiktar: number;
+    zimmetTarihi: Date;
+    iadeTarihi: Date | null;
+    durum: string;
+    zimmetNotu: string;
+    iadeNotu: string;
+}
+
 interface PersonelOption {
     label: string;
     value: number;
@@ -74,15 +103,16 @@ interface ZimmetFormData {
 const PersonelZimmet = () => {
     const router = useRouter();
     const [zimmetler, setZimmetler] = useState<PersonelZimmetData[]>([]);
+    const [grupluZimmetler, setGrupluZimmetler] = useState<GroupedZimmetData[]>([]);
     const [selectedZimmet, setSelectedZimmet] = useState<PersonelZimmetData | null>(null);
+    const [selectedPersonelZimmetleri, setSelectedPersonelZimmetleri] = useState<ZimmetDetay[]>([]);
+    const [selectedGrupluZimmet, setSelectedGrupluZimmet] = useState<GroupedZimmetData | null>(null);
     const [zimmetDialog, setZimmetDialog] = useState(false);
     const [iadeDialog, setIadeDialog] = useState(false);
-    const [printDialog, setPrintDialog] = useState(false);
-    const [selectedPersonelForPrint, setSelectedPersonelForPrint] = useState<number>(0);
+    const [detayDialog, setDetayDialog] = useState(false);
     const [loading, setLoading] = useState(true);
     const [globalFilter, setGlobalFilter] = useState('');
     const [personelOptions, setPersonelOptions] = useState<PersonelOption[]>([]);
-    const [personelWithZimmetOptions, setPersonelWithZimmetOptions] = useState<PersonelOption[]>([]);
     const [stokOptions, setStokOptions] = useState<StokOption[]>([]);
     const toast = useRef<Toast>(null);
 
@@ -95,9 +125,10 @@ const PersonelZimmet = () => {
     };
 
     const [zimmetForm, setZimmetForm] = useState<ZimmetFormData>(emptyZimmetForm);
+    const [quantityErrors, setQuantityErrors] = useState<{[key: number]: string}>({});
 
     useEffect(() => {
-        loadZimmetler();
+        loadGrupluZimmetler();
         loadPersonelOptions();
         loadStokOptions();
     }, []);
@@ -115,25 +146,33 @@ const PersonelZimmet = () => {
                     guncellemeTarihi: item.guncellemeTarihi ? new Date(item.guncellemeTarihi) : undefined
                 }));
                 setZimmetler(formattedData);
-                
-                // Create personnel options for print dialog (only personnel with zimmet records)
-                const uniquePersonel = formattedData.reduce((acc: any[], current: PersonelZimmetData) => {
-                    const existing = acc.find(p => p.value === current.personelId);
-                    if (!existing) {
-                        acc.push({
-                            label: current.personelAdSoyad,
-                            value: current.personelId
-                        });
-                    }
-                    return acc;
-                }, []);
-                
-                // Sort by label (name)
-                uniquePersonel.sort((a: any, b: any) => a.label.localeCompare(b.label, 'tr-TR'));
-                setPersonelWithZimmetOptions(uniquePersonel);
             }
         } catch (error) {
             console.error('Zimmet verileri yüklenemedi:', error);
+            toast.current?.show({ severity: 'error', summary: 'Hata', detail: 'Veriler yüklenemedi' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const loadGrupluZimmetler = async () => {
+        try {
+            setLoading(true);
+            const response = await personelZimmetService.getGroupedByPersonel();
+            if (response.success) {
+                const formattedData = response.data.map((item: any) => ({
+                    ...item,
+                    sonZimmetTarihi: new Date(item.sonZimmetTarihi),
+                    zimmetDetaylar: item.zimmetDetaylar.map((detay: any) => ({
+                        ...detay,
+                        zimmetTarihi: new Date(detay.zimmetTarihi),
+                        iadeTarihi: detay.iadeTarihi ? new Date(detay.iadeTarihi) : null
+                    }))
+                }));
+                setGrupluZimmetler(formattedData);
+            }
+        } catch (error) {
+            console.error('Gruplu zimmet verileri yüklenemedi:', error);
             toast.current?.show({ severity: 'error', summary: 'Hata', detail: 'Veriler yüklenemedi' });
         } finally {
             setLoading(false);
@@ -180,25 +219,12 @@ const PersonelZimmet = () => {
             return;
         }
         setZimmetForm(emptyZimmetForm);
+        setQuantityErrors({});
         setZimmetDialog(true);
     };
 
-    const openPrintDialog = () => {
-        setSelectedPersonelForPrint(0);
-        setPrintDialog(true);
-    };
 
-    const hidePrintDialog = () => {
-        setPrintDialog(false);
-        setSelectedPersonelForPrint(0);
-    };
-
-    const generateZimmetForm = () => {
-        if (selectedPersonelForPrint === 0) {
-            toast.current?.show({ severity: 'warn', summary: 'Uyarı', detail: 'Lütfen bir personel seçin' });
-            return;
-        }
-
+    const generateZimmetFormForPersonel = (grupluZimmet: GroupedZimmetData) => {
         // Create a new window for the comprehensive zimmet form
         const newWindow = window.open('', '_blank');
         if (!newWindow) {
@@ -207,22 +233,20 @@ const PersonelZimmet = () => {
         }
 
         // Get all zimmet items for selected personnel
-        const selectedPersonelZimmetler = zimmetler.filter(z => z.personelId === selectedPersonelForPrint);
-        
+        const selectedPersonelZimmetler = grupluZimmet.zimmetDetaylar;
+
         if (selectedPersonelZimmetler.length === 0) {
             toast.current?.show({ severity: 'warn', summary: 'Uyarı', detail: 'Seçilen personele ait zimmet kaydı bulunamadı' });
             newWindow.close();
             return;
         }
 
-        const personelBilgisi = selectedPersonelZimmetler[0]; // Get personnel info from first record
-
         const formHtml = `
         <!DOCTYPE html>
         <html>
         <head>
             <meta charset="UTF-8">
-            <title>Zimmet Formu - ${personelBilgisi.personelAdSoyad}</title>
+            <title>Zimmet Formu - ${grupluZimmet.personelAdSoyad}</title>
             <style>
                 body { font-family: Arial, sans-serif; margin: 20px; font-size: 12px; }
                 .header { text-align: center; margin-bottom: 30px; }
@@ -257,7 +281,7 @@ const PersonelZimmet = () => {
             <div class="header">
                 <div class="company-title">BİLGE LOJİSTİK A.Ş.</div>
                 <div class="form-title">KAPSAMLI ZİMMET FORMU</div>
-                <div class="form-number">Personel: ${personelBilgisi.personelAdSoyad} | Form Tarihi: ${new Date().toLocaleDateString('tr-TR')}</div>
+                <div class="form-number">Personel: ${grupluZimmet.personelAdSoyad} | Form Tarihi: ${new Date().toLocaleDateString('tr-TR')}</div>
             </div>
 
             <div class="section">
@@ -265,15 +289,15 @@ const PersonelZimmet = () => {
                 <div class="section-content">
                     <div class="field-row">
                         <div class="field-label">Ad Soyad:</div>
-                        <div class="field-value">${personelBilgisi.personelAdSoyad}</div>
+                        <div class="field-value">${grupluZimmet.personelAdSoyad}</div>
                     </div>
                     <div class="field-row">
                         <div class="field-label">Departman:</div>
-                        <div class="field-value">${personelBilgisi.departmanAd}</div>
+                        <div class="field-value">${grupluZimmet.departmanAd}</div>
                     </div>
                     <div class="field-row">
                         <div class="field-label">Pozisyon:</div>
-                        <div class="field-value">${personelBilgisi.pozisyonAd}</div>
+                        <div class="field-value">${grupluZimmet.pozisyonAd}</div>
                     </div>
                 </div>
             </div>
@@ -334,13 +358,13 @@ const PersonelZimmet = () => {
                 <div class="signature-box">
                     <div style="font-weight: bold; margin-bottom: 10px;">ZİMMET SORUMLUSU</div>
                     <div class="signature-area"></div>
-                    <div class="signature-line">${personelBilgisi.zimmetVerenAdSoyad || '___________________'}</div>
+                    <div class="signature-line">___________________</div>
                     <div style="font-size: 10px;">İmza / Tarih</div>
                 </div>
                 <div class="signature-box">
                     <div style="font-weight: bold; margin-bottom: 10px;">PERSONEL</div>
                     <div class="signature-area"></div>
-                    <div class="signature-line">${personelBilgisi.personelAdSoyad}</div>
+                    <div class="signature-line">${grupluZimmet.personelAdSoyad}</div>
                     <div style="font-size: 10px;">İmza / Tarih</div>
                 </div>
             </div>
@@ -361,13 +385,60 @@ const PersonelZimmet = () => {
         newWindow.document.write(formHtml);
         newWindow.document.close();
         
-        hidePrintDialog();
         toast.current?.show({ severity: 'success', summary: 'Başarılı', detail: 'Zimmet formu hazırlandı' });
     };
 
     const hideDialog = () => {
         setZimmetDialog(false);
         setIadeDialog(false);
+        setDetayDialog(false);
+        setQuantityErrors({});
+    };
+
+    const openDetayDialog = (grupluZimmet: GroupedZimmetData) => {
+        setSelectedPersonelZimmetleri(grupluZimmet.zimmetDetaylar);
+        setSelectedGrupluZimmet(grupluZimmet);
+        setDetayDialog(true);
+    };
+
+    const openIadeDialogFromDetay = (zimmetDetay: ZimmetDetay) => {
+        if (!yetkiService.hasScreenPermission('personel-zimmet', 'update')) {
+            toast.current?.show({ severity: 'warn', summary: 'Uyarı', detail: 'Bu işlem için yetkiniz bulunmuyor' });
+            return;
+        }
+        if (zimmetDetay.durum !== 'Zimmetli') {
+            toast.current?.show({ severity: 'warn', summary: 'Uyarı', detail: 'Bu zimmet zaten iade edilmiş' });
+            return;
+        }
+
+        // Convert ZimmetDetay to PersonelZimmetData for compatibility
+        const zimmetData: PersonelZimmetData = {
+            id: zimmetDetay.id,
+            personelId: selectedGrupluZimmet?.personelId || 0,
+            personelAdSoyad: selectedGrupluZimmet?.personelAdSoyad || '',
+            departmanAd: selectedGrupluZimmet?.departmanAd || '',
+            pozisyonAd: selectedGrupluZimmet?.pozisyonAd || '',
+            zimmetStokId: zimmetDetay.zimmetStokId,
+            malzemeAdi: zimmetDetay.malzemeAdi,
+            marka: zimmetDetay.marka,
+            model: zimmetDetay.model,
+            seriNo: zimmetDetay.seriNo,
+            zimmetMiktar: zimmetDetay.zimmetMiktar,
+            zimmetTarihi: zimmetDetay.zimmetTarihi,
+            iadeTarihi: zimmetDetay.iadeTarihi,
+            durum: zimmetDetay.durum,
+            zimmetNotu: zimmetDetay.zimmetNotu,
+            iadeNotu: zimmetDetay.iadeNotu,
+            zimmetVerenAdSoyad: '',
+            iadeAlanAdSoyad: '',
+            aktif: true,
+            olusturmaTarihi: new Date(),
+            guncellemeTarihi: undefined
+        };
+
+        setSelectedZimmet(zimmetData);
+        setDetayDialog(false);
+        setIadeDialog(true);
     };
 
     const addZimmetItem = () => {
@@ -390,6 +461,28 @@ const PersonelZimmet = () => {
     const updateZimmetItem = (index: number, field: 'zimmetStokId' | 'zimmetMiktar', value: number) => {
         const newItems = [...zimmetForm.zimmetItems];
         newItems[index][field] = value;
+
+        // Clear previous error for this item
+        const newErrors = { ...quantityErrors };
+        delete newErrors[index];
+
+        // Validate quantity if it's being updated
+        if (field === 'zimmetMiktar') {
+            const selectedStok = stokOptions.find(s => s.value === newItems[index].zimmetStokId);
+            if (selectedStok && value > selectedStok.kalanMiktar) {
+                newErrors[index] = `Maksimum ${selectedStok.kalanMiktar} adet zimmetlenebilir`;
+            }
+        }
+
+        // Validate quantity if stock is being changed
+        if (field === 'zimmetStokId') {
+            const selectedStok = stokOptions.find(s => s.value === value);
+            if (selectedStok && newItems[index].zimmetMiktar > selectedStok.kalanMiktar) {
+                newErrors[index] = `Maksimum ${selectedStok.kalanMiktar} adet zimmetlenebilir`;
+            }
+        }
+
+        setQuantityErrors(newErrors);
         setZimmetForm({
             ...zimmetForm,
             zimmetItems: newItems
@@ -401,6 +494,16 @@ const PersonelZimmet = () => {
             // Basic validation
             if (!zimmetForm.personelId || !zimmetForm.zimmetVerenId) {
                 toast.current?.show({ severity: 'warn', summary: 'Uyarı', detail: 'Lütfen personel ve zimmet veren seçiniz' });
+                return;
+            }
+
+            // Check for quantity errors
+            if (Object.keys(quantityErrors).length > 0) {
+                toast.current?.show({
+                    severity: 'warn',
+                    summary: 'Uyarı',
+                    detail: 'Lütfen miktar hatalarını düzeltiniz'
+                });
                 return;
             }
 
@@ -465,7 +568,7 @@ const PersonelZimmet = () => {
                     detail: response.message || 'Zimmet kayıtları oluşturuldu' 
                 });
                 hideDialog();
-                loadZimmetler();
+                loadGrupluZimmetler();
                 loadStokOptions(); // Reload to update remaining quantities
             } else {
                 toast.current?.show({ severity: 'error', summary: 'Hata', detail: response.message });
@@ -507,8 +610,26 @@ const PersonelZimmet = () => {
             if (response.success) {
                 toast.current?.show({ severity: 'success', summary: 'Başarılı', detail: 'Zimmet iade edildi' });
                 hideDialog();
-                loadZimmetler();
+                loadGrupluZimmetler();
                 loadStokOptions(); // Reload to update remaining quantities
+
+                // If details dialog was open, refresh its data
+                if (detayDialog) {
+                    // Find updated personnel data and refresh details
+                    const updatedGrupluZimmetler = await personelZimmetService.getGroupedByPersonel();
+                    if (updatedGrupluZimmetler.success) {
+                        const updatedPersonel = updatedGrupluZimmetler.data.find((p: any) =>
+                            p.zimmetDetaylar.some((d: any) => d.id === selectedZimmet.id)
+                        );
+                        if (updatedPersonel) {
+                            setSelectedPersonelZimmetleri(updatedPersonel.zimmetDetaylar.map((detay: any) => ({
+                                ...detay,
+                                zimmetTarihi: new Date(detay.zimmetTarihi),
+                                iadeTarihi: detay.iadeTarihi ? new Date(detay.iadeTarihi) : null
+                            })));
+                        }
+                    }
+                }
             } else {
                 toast.current?.show({ severity: 'error', summary: 'Hata', detail: response.message });
             }
@@ -536,7 +657,7 @@ const PersonelZimmet = () => {
             const response = await personelZimmetService.delete(id);
             if (response.success) {
                 toast.current?.show({ severity: 'success', summary: 'Başarılı', detail: 'Zimmet kaydı silindi' });
-                loadZimmetler();
+                loadGrupluZimmetler();
                 loadStokOptions(); // Reload to update remaining quantities
             } else {
                 toast.current?.show({ severity: 'error', summary: 'Hata', detail: response.message });
@@ -557,41 +678,65 @@ const PersonelZimmet = () => {
         return tarih ? tarih.toLocaleDateString('tr-TR') : '-';
     };
 
-    const viewZimmetForm = (rowData: PersonelZimmetData) => {
-        router.push(`/zimmet-formu/${rowData.id}`);
+    const aktifZimmetBodyTemplate = (rowData: GroupedZimmetData) => {
+        return <Badge value={rowData.aktifZimmet} severity="success" />;
     };
 
-    const actionBodyTemplate = (rowData: PersonelZimmetData) => {
+    const iadeEdilenBodyTemplate = (rowData: GroupedZimmetData) => {
+        return <Badge value={rowData.iadeEdilmis} severity="info" />;
+    };
+
+    const sonZimmetTarihBodyTemplate = (rowData: GroupedZimmetData) => {
+        return rowData.sonZimmetTarihi.toLocaleDateString('tr-TR');
+    };
+
+    const actionBodyTemplate = (rowData: GroupedZimmetData) => {
         return (
             <div className="flex gap-2">
                 <Button
-                    icon="pi pi-file-pdf"
+                    icon="pi pi-eye"
                     rounded
                     outlined
                     severity="info"
-                    onClick={() => viewZimmetForm(rowData)}
-                    tooltip="Zimmet Formu"
+                    onClick={() => openDetayDialog(rowData)}
+                    tooltip="Zimmet Detaylarını Görüntüle"
                 />
-                {rowData.durum === 'Zimmetli' && (
-                    <Button
-                        icon="pi pi-undo"
-                        rounded
-                        outlined
-                        className="mr-2"
-                        onClick={() => openIadeDialog(rowData)}
-                        tooltip="İade Et"
-                    />
-                )}
                 <Button
-                    icon="pi pi-trash"
+                    icon="pi pi-print"
                     rounded
                     outlined
-                    severity="danger"
-                    onClick={() => confirmDelete(rowData)}
-                    tooltip="Sil"
+                    severity="secondary"
+                    onClick={() => generateZimmetFormForPersonel(rowData)}
+                    tooltip="Zimmet Formu Yazdır"
                 />
             </div>
         );
+    };
+
+    const detayActionBodyTemplate = (rowData: ZimmetDetay) => {
+        return (
+            <div className="flex gap-1">
+                {rowData.durum === 'Zimmetli' && (
+                    <Button
+                        icon="pi pi-undo"
+                        size="small"
+                        outlined
+                        onClick={() => openIadeDialogFromDetay(rowData)}
+                        tooltip="İade Et"
+                    />
+                )}
+            </div>
+        );
+    };
+
+    const detayDurumBodyTemplate = (rowData: ZimmetDetay) => {
+        const severity = rowData.durum === 'Zimmetli' ? 'success' : 'info';
+        return <Badge value={rowData.durum} severity={severity} />;
+    };
+
+    const detayTarihBodyTemplate = (rowData: ZimmetDetay, field: string) => {
+        const tarih = rowData[field as keyof ZimmetDetay] as Date;
+        return tarih ? tarih.toLocaleDateString('tr-TR') : '-';
     };
 
     const header = (
@@ -607,7 +752,6 @@ const PersonelZimmet = () => {
                     />
                 </span>
                 <Button label="Yeni Zimmet" icon="pi pi-plus" onClick={openNew} />
-                <Button label="Zimmet Formu Yazdır" icon="pi pi-print" onClick={openPrintDialog} className="ml-2" />
             </div>
         </div>
     );
@@ -634,10 +778,10 @@ const PersonelZimmet = () => {
                     <ConfirmDialog />
                     
                     <DataTable
-                        value={zimmetler}
+                        value={grupluZimmetler}
                         paginator
                         rows={10}
-                        dataKey="id"
+                        dataKey="personelId"
                         loading={loading}
                         globalFilter={globalFilter}
                         header={header}
@@ -647,24 +791,25 @@ const PersonelZimmet = () => {
                         <Column field="personelAdSoyad" header="Personel" sortable />
                         <Column field="departmanAd" header="Departman" sortable />
                         <Column field="pozisyonAd" header="Pozisyon" sortable />
-                        <Column field="malzemeAdi" header="Malzeme" sortable />
-                        <Column field="marka" header="Marka" sortable />
-                        <Column field="model" header="Model" sortable />
-                        <Column field="zimmetMiktar" header="Miktar" sortable />
-                        <Column 
-                            field="zimmetTarihi" 
-                            header="Zimmet Tarihi" 
+                        <Column field="toplamZimmet" header="Toplam Zimmet" sortable />
+                        <Column
+                            field="aktifZimmet"
+                            header="Aktif Zimmet"
                             sortable
-                            body={(rowData) => tarihBodyTemplate(rowData, 'zimmetTarihi')}
+                            body={aktifZimmetBodyTemplate}
                         />
-                        <Column 
-                            field="iadeTarihi" 
-                            header="İade Tarihi" 
+                        <Column
+                            field="iadeEdilmis"
+                            header="İade Edilmiş"
                             sortable
-                            body={(rowData) => tarihBodyTemplate(rowData, 'iadeTarihi')}
+                            body={iadeEdilenBodyTemplate}
                         />
-                        <Column field="durum" header="Durum" body={durumBodyTemplate} sortable />
-                        <Column field="zimmetVerenAdSoyad" header="Zimmet Veren" sortable />
+                        <Column
+                            field="sonZimmetTarihi"
+                            header="Son Zimmet Tarihi"
+                            sortable
+                            body={sonZimmetTarihBodyTemplate}
+                        />
                         <Column body={actionBodyTemplate} header="İşlemler" />
                     </DataTable>
 
@@ -768,8 +913,11 @@ const PersonelZimmet = () => {
                                                 value={item.zimmetMiktar}
                                                 onValueChange={(e) => updateZimmetItem(index, 'zimmetMiktar', e.value || 1)}
                                                 min={1}
-                                                max={stokOptions.find(s => s.value === item.zimmetStokId)?.kalanMiktar || 999}
+                                                className={quantityErrors[index] ? 'p-invalid' : ''}
                                             />
+                                            {quantityErrors[index] && (
+                                                <small className="p-error">{quantityErrors[index]}</small>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="col-3">
@@ -835,35 +983,55 @@ const PersonelZimmet = () => {
                         )}
                     </Dialog>
 
-                    {/* Print Dialog */}
                     <Dialog
-                        visible={printDialog}
-                        style={{ width: '400px' }}
-                        header="Zimmet Formu Yazdır"
+                        visible={detayDialog}
+                        style={{ width: '1000px' }}
+                        header="Personel Zimmet Detayları"
                         modal
                         className="p-fluid"
-                        footer={
-                            <div>
-                                <Button label="İptal" icon="pi pi-times" outlined onClick={hidePrintDialog} />
-                                <Button label="Formu Oluştur" icon="pi pi-print" onClick={generateZimmetForm} />
-                            </div>
-                        }
-                        onHide={hidePrintDialog}
+                        onHide={hideDialog}
                     >
-                        <div className="field">
-                            <label htmlFor="personelForPrint">Zimmet Formu Almak İstediğiniz Personeli Seçin *</label>
-                            <Dropdown
-                                id="personelForPrint"
-                                value={selectedPersonelForPrint}
-                                options={personelWithZimmetOptions}
-                                onChange={(e) => setSelectedPersonelForPrint(e.value)}
-                                placeholder="Personel seçin..."
-                                filter
-                                showClear
-                                filterBy="label"
+                        <DataTable
+                            value={selectedPersonelZimmetleri}
+                            dataKey="id"
+                            emptyMessage="Zimmet detayı bulunamadı"
+                            size="small"
+                        >
+                            <Column field="malzemeAdi" header="Malzeme" sortable />
+                            <Column
+                                field="marka"
+                                header="Marka/Model"
+                                sortable
+                                body={(rowData) => `${rowData.marka || ''} ${rowData.model || ''}`.trim() || '-'}
                             />
-                        </div>
+                            <Column field="seriNo" header="Seri No" sortable />
+                            <Column field="zimmetMiktar" header="Miktar" sortable />
+                            <Column
+                                field="zimmetTarihi"
+                                header="Zimmet Tarihi"
+                                sortable
+                                body={(rowData) => detayTarihBodyTemplate(rowData, 'zimmetTarihi')}
+                            />
+                            <Column
+                                field="iadeTarihi"
+                                header="İade Tarihi"
+                                sortable
+                                body={(rowData) => detayTarihBodyTemplate(rowData, 'iadeTarihi')}
+                            />
+                            <Column
+                                field="durum"
+                                header="Durum"
+                                body={detayDurumBodyTemplate}
+                                sortable
+                            />
+                            <Column
+                                body={detayActionBodyTemplate}
+                                header="İşlemler"
+                                style={{ width: '100px' }}
+                            />
+                        </DataTable>
                     </Dialog>
+
                 </Card>
             </div>
         </div>

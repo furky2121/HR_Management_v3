@@ -9,6 +9,7 @@ import { Avatar } from 'primereact/avatar';
 import { Menu } from 'primereact/menu';
 import authService from '../src/services/authService';
 import fileUploadService from '../src/services/fileUploadService';
+import NotificationCenter from '../src/components/NotificationCenter';
 
 const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
     const { layoutConfig, layoutState, onMenuToggle, showProfileSidebar } = useContext(LayoutContext);
@@ -128,6 +129,9 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
             </button>
 
             <div ref={topbarmenuRef} className={classNames('layout-topbar-menu', { 'layout-topbar-menu-mobile-active': layoutState.profileSidebarVisible })}>
+                {/* Notification Center */}
+                <NotificationCenter />
+
                 {currentUser && (
                     <div className="layout-topbar-user" onClick={showProfileMenu} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem' }}>
                         {currentUser.fotografUrl ? (

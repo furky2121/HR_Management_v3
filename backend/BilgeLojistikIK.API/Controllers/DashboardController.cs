@@ -75,7 +75,7 @@ namespace BilgeLojistikIK.API.Controllers
                     .ToListAsync();
 
                 var toplamEgitim = egitimIstatistikleri.Sum(e => e.Sayi);
-                var devamEdenEgitim = egitimIstatistikleri.Where(e => e.Durum == "Devam Ediyor").Sum(e => e.Sayi);
+                var devamEdenEgitim = egitimIstatistikleri.Where(e => e.Durum == "Aktif").Sum(e => e.Sayi);
 
                 // Maaş İstatistikleri (Bordro modülü kaldırıldığı için personel maaşlarından hesaplanıyor)
                 var aktifPersonelMaaslari = await _context.Personeller
@@ -120,7 +120,7 @@ namespace BilgeLojistikIK.API.Controllers
                     EgitimIstatistikleri = new
                     {
                         BuAyToplamEgitim = toplamEgitim,
-                        DevamEdenEgitim = devamEdenEgitim,
+                        DevamEdenEgitim = egitimIstatistikleri.Where(e => e.Durum == "Aktif").Sum(e => e.Sayi),
                         PlanlananEgitim = egitimIstatistikleri.Where(e => e.Durum == "Planlandı").Sum(e => e.Sayi),
                         TamamlananEgitim = egitimIstatistikleri.Where(e => e.Durum == "Tamamlandı").Sum(e => e.Sayi)
                     },
@@ -155,8 +155,8 @@ namespace BilgeLojistikIK.API.Controllers
                 
                 if (aylikMi == 12)
                 {
-                    // Aylık trend
-                    var rawData = await _context.Personeller
+                    // Aylık trend - optimize edilmiş versiyon
+                    var yeniPersonelData = await _context.Personeller
                         .Where(p => p.IseBaslamaTarihi >= baslangicTarihi)
                         .GroupBy(p => new { Yil = p.IseBaslamaTarihi.Year, Ay = p.IseBaslamaTarihi.Month })
                         .Select(g => new
@@ -167,42 +167,69 @@ namespace BilgeLojistikIK.API.Controllers
                         })
                         .ToListAsync();
 
-                    trendData = new List<object>();
-                    foreach (var item in rawData.OrderBy(x => x.Yil).ThenBy(x => x.Ay))
-                    {
-                        var cikanPersonel = await _context.Personeller
-                            .Where(cp => cp.CikisTarihi.HasValue && 
-                                       cp.CikisTarihi.Value.Year == item.Yil && 
-                                       cp.CikisTarihi.Value.Month == item.Ay)
-                            .CountAsync();
-
-                        trendData.Add(new
+                    var cikanPersonelData = await _context.Personeller
+                        .Where(p => p.CikisTarihi.HasValue && p.CikisTarihi.Value >= baslangicTarihi)
+                        .GroupBy(p => new { Yil = p.CikisTarihi!.Value.Year, Ay = p.CikisTarihi!.Value.Month })
+                        .Select(g => new
                         {
-                            Donem = $"{item.Yil}-{item.Ay:D2}",
-                            YeniPersonel = item.YeniPersonel,
-                            CikanPersonel = cikanPersonel
+                            Yil = g.Key.Yil,
+                            Ay = g.Key.Ay,
+                            CikanPersonel = g.Count()
+                        })
+                        .ToListAsync();
+
+                    // Tüm mevcut ayları oluştur
+                    var allMonths = new List<object>();
+                    for (int i = 0; i < 12; i++)
+                    {
+                        var tarih = baslangicTarihi.AddMonths(i);
+                        var yeni = yeniPersonelData.FirstOrDefault(y => y.Yil == tarih.Year && y.Ay == tarih.Month);
+                        var cikan = cikanPersonelData.FirstOrDefault(c => c.Yil == tarih.Year && c.Ay == tarih.Month);
+
+                        allMonths.Add(new
+                        {
+                            Donem = $"{tarih.Year}-{tarih.Month:D2}",
+                            YeniPersonel = yeni?.YeniPersonel ?? 0,
+                            CikanPersonel = cikan?.CikanPersonel ?? 0
                         });
                     }
+                    trendData = allMonths;
                 }
                 else
                 {
-                    // Günlük trend
+                    // Günlük trend - optimize edilmiş versiyon
+                    var yeniPersonelGunluk = await _context.Personeller
+                        .Where(p => p.IseBaslamaTarihi.Date >= baslangicTarihi.Date)
+                        .GroupBy(p => p.IseBaslamaTarihi.Date)
+                        .Select(g => new
+                        {
+                            Tarih = g.Key,
+                            YeniPersonel = g.Count()
+                        })
+                        .ToListAsync();
+
+                    var cikanPersonelGunluk = await _context.Personeller
+                        .Where(p => p.CikisTarihi.HasValue && p.CikisTarihi.Value.Date >= baslangicTarihi.Date)
+                        .GroupBy(p => p.CikisTarihi!.Value.Date)
+                        .Select(g => new
+                        {
+                            Tarih = g.Key,
+                            CikanPersonel = g.Count()
+                        })
+                        .ToListAsync();
+
                     var gunlukData = new List<object>();
                     for (int i = 0; i < aylikMi; i++)
                     {
-                        var tarih = bugun.AddDays(-aylikMi + 1 + i);
-                        var yeniPersonel = await _context.Personeller
-                            .Where(p => p.IseBaslamaTarihi.Date == tarih)
-                            .CountAsync();
-                        var cikanPersonel = await _context.Personeller
-                            .Where(p => p.CikisTarihi.HasValue && p.CikisTarihi.Value.Date == tarih)
-                            .CountAsync();
+                        var tarih = baslangicTarihi.AddDays(i).Date;
+                        var yeni = yeniPersonelGunluk.FirstOrDefault(y => y.Tarih == tarih);
+                        var cikan = cikanPersonelGunluk.FirstOrDefault(c => c.Tarih == tarih);
 
                         gunlukData.Add(new
                         {
                             Donem = tarih.ToString("yyyy-MM-dd"),
-                            YeniPersonel = yeniPersonel,
-                            CikanPersonel = cikanPersonel
+                            YeniPersonel = yeni?.YeniPersonel ?? 0,
+                            CikanPersonel = cikan?.CikanPersonel ?? 0
                         });
                     }
                     trendData = gunlukData;
@@ -500,7 +527,7 @@ namespace BilgeLojistikIK.API.Controllers
                                 DogumTarihi = personel.DogumTarihi.Value.ToString("dd MMMM"),
                                 KalanGun = gunFarki,
                                 Yas = DateTime.Now.Year - personel.DogumTarihi.Value.Year,
-                                FotoUrl = personel.FotografUrl,
+                                fotoUrl = !string.IsNullOrEmpty(personel.FotografUrl) ? $"/uploads/avatars/{personel.FotografUrl}" : null,
                                 Email = personel.Email,
                                 Telefon = personel.Telefon
                             });
@@ -750,11 +777,13 @@ namespace BilgeLojistikIK.API.Controllers
                 .ToListAsync();
 
             var videoEgitimler = await _context.VideoEgitimler
+                .Include(ve => ve.Kategori)
                 .Where(ve => ve.Aktif)
                 .Select(ve => new {
                     Id = ve.Id,
                     Baslik = ve.Baslik,
-                    Kategori = ve.KategoriId
+                    KategoriId = ve.KategoriId,
+                    KategoriAd = ve.Kategori.Ad
                 })
                 .ToListAsync();
 
@@ -767,7 +796,7 @@ namespace BilgeLojistikIK.API.Controllers
                     return new {
                         Id = ve.Id,
                         Baslik = ve.Baslik,
-                        Kategori = ve.Kategori,
+                        kategori = ve.KategoriAd,
                         AtamaSayisi = atamaSayisi,
                         TamamlanmaSayisi = tamamlanmaSayisi,
                         OrtalamaTamamlanma = atamaSayisi > 0 ? (double)tamamlanmaSayisi / atamaSayisi * 100.0 : 0
@@ -789,9 +818,15 @@ namespace BilgeLojistikIK.API.Controllers
 
             var result = new List<object>();
 
+            // Get categories to resolve names
+            var kategoriler = await _context.VideoKategoriler
+                .Where(vk => vk.Aktif)
+                .ToListAsync();
+
             foreach (var group in kategoriGroups)
             {
                 var videoEgitimIds = group.Select(ve => ve.Id).ToList();
+                var kategori = kategoriler.FirstOrDefault(k => k.Id == group.Key);
                 
                 var toplamAtama = await _context.VideoAtamalar
                     .Where(va => videoEgitimIds.Contains(va.VideoEgitimId))
@@ -799,6 +834,7 @@ namespace BilgeLojistikIK.API.Controllers
 
                 result.Add(new {
                     KategoriId = group.Key,
+                    KategoriAd = kategori?.Ad ?? "Bilinmeyen",
                     EgitimSayisi = group.Count(),
                     ToplamAtama = toplamAtama
                 });

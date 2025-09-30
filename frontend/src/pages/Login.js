@@ -117,27 +117,44 @@ const Login = ({ onLogin }) => {
                 <div className="login-left">
                     <div className="login-branding">
                         <div className="login-logo">
-                            <i className="pi pi-building text-6xl mb-3"></i>
-                            <h1 className="text-white text-5xl font-bold mb-2">BilgeLojistik</h1>
+                            <img
+                                src="/layout/images/bilge_lojistik.png"
+                                alt="BilgeLojistik Logo"
+                                style={{
+                                    width: '150px',
+                                    height: '112px',
+                                    objectFit: 'contain',
+                                    marginBottom: '1.5rem',
+                                    filter: 'brightness(0) invert(1)'
+                                }}
+                            />
                             <p className="text-white text-xl opacity-90">İnsan Kaynakları Yönetim Sistemi</p>
                         </div>
                         
                         <div className="login-features mt-6">
                             <div className="feature-item">
                                 <i className="pi pi-users text-2xl mr-3"></i>
-                                <span>Personel Yönetimi</span>
+                                <span>İşe Alım & İK Süreçleri</span>
                             </div>
                             <div className="feature-item">
-                                <i className="pi pi-calendar text-2xl mr-3"></i>
-                                <span>İzin Takibi</span>
+                                <i className="pi pi-video text-2xl mr-3"></i>
+                                <span>Video Eğitim Sistemi</span>
                             </div>
                             <div className="feature-item">
-                                <i className="pi pi-chart-bar text-2xl mr-3"></i>
-                                <span>Detaylı Raporlama</span>
+                                <i className="pi pi-credit-card text-2xl mr-3"></i>
+                                <span>Avans & Masraf Yönetimi</span>
                             </div>
                             <div className="feature-item">
-                                <i className="pi pi-money-bill text-2xl mr-3"></i>
-                                <span>Bordro Yönetimi</span>
+                                <i className="pi pi-briefcase text-2xl mr-3"></i>
+                                <span>Zimmet & Varlık Takibi</span>
+                            </div>
+                            <div className="feature-item">
+                                <i className="pi pi-clock text-2xl mr-3"></i>
+                                <span>Mesai & İzin Takibi</span>
+                            </div>
+                            <div className="feature-item">
+                                <i className="pi pi-chart-line text-2xl mr-3"></i>
+                                <span>Dashboard & Analitik</span>
                             </div>
                         </div>
                     </div>
@@ -215,6 +232,25 @@ const Login = ({ onLogin }) => {
                 visible={showForgotPassword}
                 onHide={() => setShowForgotPassword(false)}
             />
+
+            {/* Login Footer */}
+            <div className="login-footer">
+                <div className="footer-content">
+                    <span>
+                        © {new Date().getFullYear()}, All rights reserved.
+                    </span>
+                    <span style={{ color: 'rgba(255, 255, 255, 0.5)' }}>|</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>Powered by</span>
+                        <img
+                            src="/lionsoft.png"
+                            alt="Lionsoft Technology"
+                            height="24"
+                            style={{ objectFit: 'contain' }}
+                        />
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };

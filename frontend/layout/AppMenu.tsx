@@ -17,7 +17,8 @@ const AppMenu = () => {
             label: 'ANA MENÜ',
             items: [
                 { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/', screenCode: 'dashboard' },
-                { label: 'Bana Atanan Eğitimler', icon: 'pi pi-fw pi-play-circle', to: '/bana-atanan-egitimler', screenCode: 'egitimler' }
+                { label: 'Organizasyon Şeması', icon: 'pi pi-fw pi-share-alt', to: '/organizasyon-semasi', screenCode: 'organizasyon-semasi' },
+                { label: 'Bana Atanan Eğitimler', icon: 'pi pi-fw pi-book', to: '/bana-atanan-egitimler', screenCode: 'egitimler' }
             ]
         },
         {
@@ -27,10 +28,22 @@ const AppMenu = () => {
                     label: 'Organizasyon',
                     icon: 'pi pi-fw pi-sitemap',
                     items: [
-                        { label: 'Organizasyon Şeması', icon: 'pi pi-fw pi-share-alt', to: '/organizasyon-semasi', screenCode: 'organizasyon-semasi' },
                         { label: 'Kademeler', icon: 'pi pi-fw pi-list', to: '/kademeler', screenCode: 'kademeler' },
                         { label: 'Departmanlar', icon: 'pi pi-fw pi-building', to: '/departmanlar', screenCode: 'departmanlar' },
                         { label: 'Pozisyonlar', icon: 'pi pi-fw pi-briefcase', to: '/pozisyonlar', screenCode: 'pozisyonlar' }
+                    ]
+                },
+                {
+                    label: 'İşe Alım',
+                    icon: 'pi pi-fw pi-user-plus',
+                    items: [
+                        { label: 'İş İlanları', icon: 'pi pi-fw pi-megaphone', to: '/is-ilanlari', screenCode: 'is-ilanlari' },
+                        { label: 'İlan Kategorileri', icon: 'pi pi-fw pi-tags', to: '/ilan-kategorileri', screenCode: 'ilan-kategorileri' },
+                        { label: 'Özgeçmiş Havuzu', icon: 'pi pi-fw pi-database', to: '/ozgecmis-havuzu', screenCode: 'ozgecmis-havuzu' },
+                        { label: 'Başvuru Yönetimi', icon: 'pi pi-fw pi-inbox', to: '/basvuru-yonetimi', screenCode: 'basvuru-yonetimi' },
+                        { label: 'Mülakat Takvimi', icon: 'pi pi-fw pi-calendar-times', to: '/mulakat-takvimi', screenCode: 'mulakat-takvimi' },
+                        { label: 'İşe Alım Süreçleri', icon: 'pi pi-fw pi-cog', to: '/ise-alim-surecleri', screenCode: 'ise-alim-surecleri' },
+                        { label: 'Teklif Yönetimi', icon: 'pi pi-fw pi-file-edit', to: '/teklif-yonetimi', screenCode: 'teklif-yonetimi' }
                     ]
                 },
                 {
@@ -51,7 +64,7 @@ const AppMenu = () => {
                 },
                 {
                     label: 'Eğitim Yönetimi',
-                    icon: 'pi pi-fw pi-graduation-cap',
+                    icon: 'pi pi-fw pi-bookmark',
                     items: [
                         { label: 'Video Eğitimler', icon: 'pi pi-fw pi-play', to: '/egitimler', screenCode: 'egitimler' },
                         { label: 'Kategori Yönetimi', icon: 'pi pi-fw pi-th-large', to: '/kategori-yonetimi', screenCode: 'kategori-yonetimi' },
@@ -78,6 +91,8 @@ const AppMenu = () => {
             items: [
                 { label: 'Avans Talepleri', icon: 'pi pi-fw pi-dollar', to: '/avans-talepleri', screenCode: 'avans-talepleri' },
                 { label: 'Avans Onay', icon: 'pi pi-fw pi-check-circle', to: '/avans-onay', screenCode: 'avans-onay' },
+                { label: 'Masraf Talepleri', icon: 'pi pi-fw pi-credit-card', to: '/masraf-talepleri', screenCode: 'masraf-talepleri' },
+                { label: 'Masraf Onay', icon: 'pi pi-fw pi-verified', to: '/masraf-onay', screenCode: 'masraf-onay' },
                 { label: 'İstifa İşlemleri', icon: 'pi pi-fw pi-sign-out', to: '/istifa-islemleri', screenCode: 'istifa-islemleri' },
                 { label: 'İstifa Onay', icon: 'pi pi-fw pi-times-circle', to: '/istifa-onay', screenCode: 'istifa-onay' }
             ]
@@ -85,7 +100,9 @@ const AppMenu = () => {
         {
             label: 'Sistem',
             items: [
-                { label: 'Ayarlar', icon: 'pi pi-fw pi-cog', to: '/ayarlar', screenCode: 'ayarlar' }
+                { label: 'Bildirimler', icon: 'pi pi-fw pi-bell', to: '/bildirimler', screenCode: 'bildirimler' },
+                { label: 'Ayarlar', icon: 'pi pi-fw pi-cog', to: '/ayarlar', screenCode: 'ayarlar' },
+                { label: 'İzin Konfigürasyonları', icon: 'pi pi-fw pi-calendar-plus', to: '/izin-konfigurasyonlari', screenCode: 'izin-konfigurasyonlari' }
             ]
         }
     ];

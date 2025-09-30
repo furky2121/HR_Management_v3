@@ -21,6 +21,7 @@ const EgitimRaporlariPage = () => {
     const [departmanBazliEgitimler, setDepartmanBazliEgitimler] = useState<any[]>([]);
     const [egitimDurumChart, setEgitimDurumChart] = useState<any>({});
     const [aylikEgitimChart, setAylikEgitimChart] = useState<any>({});
+    const [aylikTrendVerileri, setAylikTrendVerileri] = useState<any[]>([]);
     const toast = useRef<Toast>(null);
 
     const yearOptions = Array.from({ length: 5 }, (_, i) => {
@@ -51,33 +52,69 @@ const EgitimRaporlariPage = () => {
     const loadRaporlar = async () => {
         try {
             setLoading(true);
-            
+
             // Video eğitim istatistikleri
             const stats = await videoEgitimService.getVideoEgitimIstatistikleri();
-            setEgitimIstatistikleri(stats.data.data || {
-                toplamVideoEgitim: 0,
-                tamamlananAtama: 0,
-                devamEdenAtama: 0,
-                planlananAtama: 0,
-                toplamKatilimci: 0,
-                ortalamaIzlemeSuresi: 0,
-                tamamlanmaOrani: 0
-            });
+            console.log('Stats response:', stats);
+
+            if (stats.success && stats.data) {
+                setEgitimIstatistikleri(stats.data);
+                // Debug: API'den gelen veriyi console'da göster
+                console.log('DEBUG - API\'den gelen istatistikler:', stats.data);
+                console.log('DEBUG - Chart için hazırlanan veri:', {
+                    tamamlananAtama: stats.data.tamamlananAtama,
+                    devamEdenAtama: stats.data.devamEdenAtama,
+                    atandiAtama: stats.data.atandiAtama,
+                    suresiGectiAtama: stats.data.suresiGectiAtama
+                });
+                // Grafik verileri
+                prepareChartData(stats.data);
+            } else {
+                console.warn('İstatistik verisi alınamadı, mock veri kullanılıyor');
+                setVideoEgitimMockData();
+            }
 
             // Personel video eğitim özeti
             const personelOzet = await videoEgitimService.getPersonelVideoEgitimOzeti();
-            setPersonelEgitimOzeti(personelOzet.data.data || []);
+            console.log('Personel özet response:', personelOzet);
+
+            if (personelOzet.success && personelOzet.data) {
+                setPersonelEgitimOzeti(personelOzet.data);
+            } else {
+                console.warn('Personel özeti alınamadı, mock veri kullanılıyor');
+                setPersonelEgitimOzeti([]);
+            }
 
             // Departman bazlı video eğitimler
-            // const departmanEgitim = await videoEgitimService.getDepartmanBazliVideoEgitimler(selectedYear);
-            setDepartmanBazliEgitimler([]); // departmanEgitim.data.data || []
+            const departmanEgitim = await videoEgitimService.getDepartmanRaporu(selectedYear);
+            console.log('Departman rapor response:', departmanEgitim);
 
-            // Grafik verileri
-            prepareChartData(stats.data.data);
-            prepareMonthlyChartData();
-            
+            if (departmanEgitim.success && departmanEgitim.data) {
+                setDepartmanBazliEgitimler(departmanEgitim.data);
+            } else {
+                console.warn('Departman raporu alınamadı, mock veri kullanılıyor');
+                setDepartmanBazliEgitimler([]);
+            }
+
+            // Aylık video eğitim trendi
+            const aylikTrend = await videoEgitimService.getAylikEgitimTrendi(selectedYear);
+            console.log('Aylık trend response:', aylikTrend);
+
+            if (aylikTrend.success && aylikTrend.data) {
+                setAylikTrendVerileri(aylikTrend.data);
+                prepareMonthlyChartData(aylikTrend.data);
+            } else {
+                console.warn('Aylık trend verisi alınamadı, mock veri kullanılıyor');
+                prepareMonthlyChartData();
+            }
+
         } catch (error) {
             console.error('Video eğitim raporları yüklenirken hata:', error);
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Hata',
+                detail: 'Rapor verileri yüklenirken hata oluştu'
+            });
             // Örnek veri ile devam et
             setVideoEgitimMockData();
         } finally {
@@ -91,7 +128,7 @@ const EgitimRaporlariPage = () => {
             toplamVideoEgitim: 52,
             tamamlananAtama: 38,
             devamEdenAtama: 14,
-            planlananAtama: 8,
+            atandiAtama: 8,
             toplamKatilimci: 234,
             ortalamaIzlemeSuresi: 142.5,
             tamamlanmaOrani: 73
@@ -119,7 +156,8 @@ const EgitimRaporlariPage = () => {
         prepareChartData({
             tamamlananAtama: 38,
             devamEdenAtama: 14,
-            planlananAtama: 8
+            atandiAtama: 12,
+            suresiGectiAtama: 5
         });
         prepareMonthlyChartData();
     };
@@ -128,45 +166,55 @@ const EgitimRaporlariPage = () => {
         const documentStyle = getComputedStyle(document.documentElement);
         
         setEgitimDurumChart({
-            labels: ['Tamamlanan', 'Devam Eden', 'Planlanan'],
+            labels: ['Tamamlanan', 'Devam Eden', 'Atandı', 'Süresi Geçti'],
             datasets: [{
                 data: [
                     stats?.tamamlananAtama || 0,
                     stats?.devamEdenAtama || 0,
-                    stats?.planlananAtama || 0
+                    stats?.atandiAtama || 0,
+                    stats?.suresiGectiAtama || 0
                 ],
                 backgroundColor: [
                     documentStyle.getPropertyValue('--green-500'),
                     documentStyle.getPropertyValue('--blue-500'),
-                    documentStyle.getPropertyValue('--yellow-500')
+                    documentStyle.getPropertyValue('--yellow-500'),
+                    documentStyle.getPropertyValue('--red-500')
                 ],
                 hoverBackgroundColor: [
                     documentStyle.getPropertyValue('--green-400'),
                     documentStyle.getPropertyValue('--blue-400'),
-                    documentStyle.getPropertyValue('--yellow-400')
+                    documentStyle.getPropertyValue('--yellow-400'),
+                    documentStyle.getPropertyValue('--red-400')
                 ]
             }]
         });
     };
 
-    const prepareMonthlyChartData = () => {
+    const prepareMonthlyChartData = (realData: any[] = []) => {
         const documentStyle = getComputedStyle(document.documentElement);
-        
-        // Örnek aylık veri
-        const aylikVeriler = [
-            { ay: 'Oca', egitim: 12, katilimci: 45 },
-            { ay: 'Şub', egitim: 15, katilimci: 58 },
-            { ay: 'Mar', egitim: 18, katilimci: 72 },
-            { ay: 'Nis', egitim: 22, katilimci: 88 },
-            { ay: 'May', egitim: 20, katilimci: 76 },
-            { ay: 'Haz', egitim: 25, katilimci: 95 },
-            { ay: 'Tem', egitim: 16, katilimci: 62 },
-            { ay: 'Ağu', egitim: 14, katilimci: 54 },
-            { ay: 'Eyl', egitim: 28, katilimci: 102 },
-            { ay: 'Eki', egitim: 24, katilimci: 89 },
-            { ay: 'Kas', egitim: 21, katilimci: 78 },
-            { ay: 'Ara', egitim: 19, katilimci: 71 }
-        ];
+
+        let aylikVeriler;
+
+        // Eğer gerçek veri varsa onu kullan, yoksa örnek veri kullan
+        if (realData && realData.length > 0) {
+            aylikVeriler = realData;
+        } else {
+            // Örnek aylık veri (fallback)
+            aylikVeriler = [
+                { ay: 'Oca', egitim: 12, katilimci: 45 },
+                { ay: 'Şub', egitim: 15, katilimci: 58 },
+                { ay: 'Mar', egitim: 18, katilimci: 72 },
+                { ay: 'Nis', egitim: 22, katilimci: 88 },
+                { ay: 'May', egitim: 20, katilimci: 76 },
+                { ay: 'Haz', egitim: 25, katilimci: 95 },
+                { ay: 'Tem', egitim: 16, katilimci: 62 },
+                { ay: 'Ağu', egitim: 14, katilimci: 54 },
+                { ay: 'Eyl', egitim: 28, katilimci: 102 },
+                { ay: 'Eki', egitim: 24, katilimci: 89 },
+                { ay: 'Kas', egitim: 21, katilimci: 78 },
+                { ay: 'Ara', egitim: 19, katilimci: 71 }
+            ];
+        }
 
         setAylikEgitimChart({
             labels: aylikVeriler.map(v => v.ay),

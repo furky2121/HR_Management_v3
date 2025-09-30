@@ -1,4 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+'use client';
+
+import React, { useEffect, useRef, useState, useImperativeHandle, forwardRef } from 'react';
 import { Button } from 'primereact/button';
 import { ProgressBar } from 'primereact/progressbar';
 import { Toast } from 'primereact/toast';
@@ -8,7 +10,7 @@ import { Divider } from 'primereact/divider';
 import videoEgitimService from '../services/videoEgitimService';
 // CSS import removed to prevent production build issues
 
-const VideoPlayer = ({ egitim, onComplete, onProgress, personelId }) => {
+const VideoPlayer = forwardRef(({ egitim, onComplete, onProgress, personelId }, ref) => {
     const videoRef = useRef(null);
     const toast = useRef(null);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -21,6 +23,9 @@ const VideoPlayer = ({ egitim, onComplete, onProgress, personelId }) => {
     const [watchedPercentage, setWatchedPercentage] = useState(0);
     const [isCompleted, setIsCompleted] = useState(false);
     const [savedProgress, setSavedProgress] = useState(null);
+    const [isMounted, setIsMounted] = useState(false);
+    const [isProcessingCompletion, setIsProcessingCompletion] = useState(false);
+    const [hasShownCompletionToast, setHasShownCompletionToast] = useState(false);
     
 
     // Progress tracking intervals
@@ -32,7 +37,27 @@ const VideoPlayer = ({ egitim, onComplete, onProgress, personelId }) => {
     const [videoPlatform, setVideoPlatform] = useState('Local');
     const [playerReady, setPlayerReady] = useState(false);
 
+    // Effect to set mounted state
     useEffect(() => {
+        setIsMounted(true);
+        console.log(`VideoPlayer mounted - egitim: ${egitim?.id}, personel: ${personelId}, states: isCompleted=${isCompleted}, hasShownCompletionToast=${hasShownCompletionToast}`);
+
+        // Clear any session completion data when component mounts with fresh data
+        if (egitim?.id && personelId) {
+            const completionKey = `video_completion_${egitim.id}_${personelId}`;
+            console.log(`Clearing session completion key: ${completionKey}`);
+            sessionStorage.removeItem(completionKey);
+        }
+
+        return () => setIsMounted(false);
+    }, [egitim?.id, personelId]);
+
+
+
+    useEffect(() => {
+        // Only run after component is mounted to avoid SSR issues
+        if (!isMounted) return;
+
         // Detect video platform
         if (egitim?.videoUrl) {
             console.log('🎬 VideoPlayer - Video URL detected:', egitim.videoUrl);
@@ -59,6 +84,12 @@ const VideoPlayer = ({ egitim, onComplete, onProgress, personelId }) => {
         }
 
         return () => {
+            // Save progress before component unmounts
+            if (egitim?.id && personelId && watchedPercentage > 0 && !isCompleted) {
+                console.log('Component unmounting, saving current progress...');
+                saveCurrentProgress();
+            }
+
             // Cleanup intervals
             if (progressIntervalRef.current) {
                 clearInterval(progressIntervalRef.current);
@@ -66,7 +97,7 @@ const VideoPlayer = ({ egitim, onComplete, onProgress, personelId }) => {
             if (saveProgressIntervalRef.current) {
                 clearInterval(saveProgressIntervalRef.current);
             }
-            
+
             // Cleanup YouTube player
             if (youTubePlayer && youTubePlayer.destroy) {
                 try {
@@ -76,10 +107,12 @@ const VideoPlayer = ({ egitim, onComplete, onProgress, personelId }) => {
                 }
             }
         };
-    }, [egitim?.id, egitim?.videoUrl, personelId]);
+    }, [isMounted, egitim?.id, egitim?.videoUrl, personelId]);
 
     // Initialize players when API is ready
     useEffect(() => {
+        if (!isMounted) return;
+        
         if (playerReady && egitim?.videoUrl) {
             if (videoPlatform === 'YouTube') {
                 initializeYouTubePlayer();
@@ -87,10 +120,12 @@ const VideoPlayer = ({ egitim, onComplete, onProgress, personelId }) => {
                 initializeVimeoPlayer();
             }
         }
-    }, [playerReady, egitim?.videoUrl, videoPlatform]);
+    }, [isMounted, playerReady, egitim?.videoUrl, videoPlatform]);
 
     // Set loading to false after a short delay if no API is needed
     useEffect(() => {
+        if (!isMounted) return;
+        
         if (egitim?.videoUrl && videoPlatform === 'Local') {
             // For local videos, set loading false immediately
             setIsLoading(false);
@@ -104,7 +139,7 @@ const VideoPlayer = ({ egitim, onComplete, onProgress, personelId }) => {
             }, 5000); // 5 seconds timeout
             return () => clearTimeout(timeout);
         }
-    }, [egitim?.videoUrl, videoPlatform]);
+    }, [isMounted, egitim?.videoUrl, videoPlatform, isLoading]);
 
     const loadSavedProgress = async () => {
         if (egitim?.id && personelId) {
@@ -125,24 +160,31 @@ const VideoPlayer = ({ egitim, onComplete, onProgress, personelId }) => {
                         // Set saved progress
                         const savedPercentage = izlemeData.IzlemeYuzdesi || izlemeData.izlemeYuzdesi || 0;
                         const savedTime = izlemeData.ToplamIzlenenSure || izlemeData.toplamIzlenenSure || 0;
-                        const isCompleted = izlemeData.TamamlandiMi || izlemeData.tamamlandiMi || false;
-                        
+                        const dbCompletedStatus = izlemeData.TamamlandiMi || izlemeData.tamamlandiMi || false;
+
                         setWatchedPercentage(savedPercentage);
                         if (savedTime > 0) {
                             setCurrentTime(savedTime);
                             console.log(`Loading saved progress: ${savedPercentage}% at ${savedTime} seconds`);
                         }
-                        
+
                         // Store resume data for later use
                         setSavedProgress({
                             currentTime: savedTime,
                             percentage: savedPercentage,
-                            completed: isCompleted
+                            completed: dbCompletedStatus
                         });
-                        
-                        // Mark as completed if threshold reached
-                        if (savedPercentage >= (egitim.izlenmeMinimum || 80)) {
+
+                        // Check if video was already completed in database
+                        console.log(`Database completion status: ${dbCompletedStatus}`);
+                        if (dbCompletedStatus) {
+                            console.log('Video marked as completed in database - setting completed state');
                             setIsCompleted(true);
+                            setHasShownCompletionToast(true); // Assume toast was shown before
+                        } else {
+                            console.log('Video not completed in database - resetting completion state');
+                            setIsCompleted(false);
+                            setHasShownCompletionToast(false);
                         }
                     } else {
                         console.log('No previous watch data found for this video');
@@ -274,36 +316,47 @@ const VideoPlayer = ({ egitim, onComplete, onProgress, personelId }) => {
     };
 
     const handleTimeUpdate = () => {
+        console.log('handleTimeUpdate called!');
+
         if (videoRef.current && !videoRef.current.paused) {
             const current = videoRef.current.currentTime;
             const total = videoRef.current.duration;
-            
+
+            console.log(`Video time update: current=${current}, total=${total}, paused=${videoRef.current.paused}`);
+
             if (total > 0) {
                 const progressPercent = (current / total) * 100;
                 setProgress(progressPercent);
-                
+
+                console.log(`Progress calculation: ${progressPercent}% (current: ${current}s / total: ${total}s)`);
+
                 // For local videos, currentTime is the position, watchedPercentage tracks total watched
                 // Update watched percentage if user moved forward
                 if (progressPercent > watchedPercentage) {
+                    console.log(`Updating watched percentage from ${watchedPercentage}% to ${progressPercent}%`);
                     setWatchedPercentage(progressPercent);
                     setCurrentTime(current); // For local videos, this represents watched time
                 }
 
-                // Check completion
+                // Check completion using the current progressPercent (not state value)
                 const requiredProgress = egitim?.izlenmeMinimum || 80;
-                if (watchedPercentage >= requiredProgress && !isCompleted) {
-                    console.log(`Local video completion threshold reached: ${Math.floor(watchedPercentage)}%`);
-                    setIsCompleted(true);
+                console.log(`Completion check: ${Math.floor(progressPercent)}% >= ${requiredProgress}% ? ${progressPercent >= requiredProgress}, isCompleted: ${isCompleted}, hasShownCompletionToast: ${hasShownCompletionToast}`);
+
+                if (progressPercent >= requiredProgress && !isCompleted && !hasShownCompletionToast) {
+                    console.log(`🎉 Local video completion threshold reached: ${Math.floor(progressPercent)}% - TRIGGERING COMPLETION`);
                     handleVideoComplete();
                 }
-                
+
                 // Auto-save progress periodically
                 if (Math.floor(current) % 30 === 0 && Math.floor(current) > 0) {
+                    console.log('Auto-saving progress...');
                     saveCurrentProgress();
                 }
-                
+
                 console.log(`Local video - Position: ${Math.floor(progressPercent)}%, Watched: ${Math.floor(watchedPercentage)}%, Time: ${Math.floor(current)}s/${Math.floor(total)}s`);
             }
+        } else {
+            console.log('Video not available or paused');
         }
     };
 
@@ -434,7 +487,8 @@ const VideoPlayer = ({ egitim, onComplete, onProgress, personelId }) => {
                             saveCurrentProgress();
                         } else if (event.data === 0) { // Ended
                             setIsPlaying(false);
-                            if (!isCompleted) {
+                            if (!isCompleted && !hasShownCompletionToast) {
+                                console.log('YouTube video ended, triggering completion');
                                 handleVideoComplete();
                             }
                         }
@@ -523,9 +577,14 @@ const VideoPlayer = ({ egitim, onComplete, onProgress, personelId }) => {
                         
                         // Check completion
                         const requiredProgress = egitim?.izlenmeMinimum || 80;
-                        if (calculatedWatchedPercentage >= requiredProgress && !isCompleted) {
-                            console.log(`YouTube completion threshold reached: ${Math.floor(calculatedWatchedPercentage)}%`);
-                            setIsCompleted(true);
+
+                        // Debug completion conditions every 5%
+                        if (Math.floor(calculatedWatchedPercentage) % 5 === 0 && Math.floor(calculatedWatchedPercentage) > 0) {
+                            console.log(`YouTube completion check: ${Math.floor(calculatedWatchedPercentage)}% >= ${requiredProgress}% ? ${calculatedWatchedPercentage >= requiredProgress}, isCompleted: ${isCompleted}, hasShownCompletionToast: ${hasShownCompletionToast}`);
+                        }
+
+                        if (calculatedWatchedPercentage >= requiredProgress && !isCompleted && !hasShownCompletionToast) {
+                            console.log(`YouTube completion threshold reached: ${Math.floor(calculatedWatchedPercentage)}% - TRIGGERING COMPLETION`);
                             handleVideoComplete();
                         }
                         
@@ -615,10 +674,10 @@ const VideoPlayer = ({ egitim, onComplete, onProgress, personelId }) => {
         return null;
     };
 
-    // Vimeo Player event handlers  
+    // Vimeo Player event handlers
     const initializeVimeoTracking = (player) => {
         console.log('Initializing Vimeo tracking...');
-        
+
         let totalWatchedTime = savedProgress?.currentTime || 0;
         let lastUpdateTime = 0;
         let isPlayingState = false;
@@ -664,7 +723,8 @@ const VideoPlayer = ({ egitim, onComplete, onProgress, personelId }) => {
             console.log('Vimeo ended event');
             isPlayingState = false;
             setIsPlaying(false);
-            if (!isCompleted) {
+            if (!isCompleted && !hasShownCompletionToast) {
+                console.log('Vimeo video ended, triggering completion');
                 handleVideoComplete();
             }
         });
@@ -686,17 +746,22 @@ const VideoPlayer = ({ egitim, onComplete, onProgress, personelId }) => {
                     const calculatedWatchedPercentage = Math.min((totalWatchedTime / videoDuration) * 100, 100);
                     const currentPositionPercentage = (currentVideoTime / videoDuration) * 100;
                     
-                    // Update state
+                    // Update state with current values
                     setCurrentTime(totalWatchedTime);
                     setWatchedPercentage(calculatedWatchedPercentage);
                     setProgress(currentPositionPercentage);
                     setDuration(videoDuration);
                     
-                    // Check completion
+                    // Check completion using calculated value (not state)
                     const requiredProgress = egitim?.izlenmeMinimum || 80;
-                    if (calculatedWatchedPercentage >= requiredProgress && !isCompleted) {
-                        console.log(`Vimeo completion threshold reached: ${Math.floor(calculatedWatchedPercentage)}%`);
-                        setIsCompleted(true);
+
+                    // Debug completion conditions every 5%
+                    if (Math.floor(calculatedWatchedPercentage) % 5 === 0 && Math.floor(calculatedWatchedPercentage) > 0) {
+                        console.log(`Vimeo completion check: ${Math.floor(calculatedWatchedPercentage)}% >= ${requiredProgress}% ? ${calculatedWatchedPercentage >= requiredProgress}, isCompleted: ${isCompleted}, hasShownCompletionToast: ${hasShownCompletionToast}`);
+                    }
+
+                    if (calculatedWatchedPercentage >= requiredProgress && !isCompleted && !hasShownCompletionToast) {
+                        console.log(`🎉 Vimeo completion threshold reached: ${Math.floor(calculatedWatchedPercentage)}% - TRIGGERING COMPLETION`);
                         handleVideoComplete();
                     }
                     
@@ -770,43 +835,144 @@ const VideoPlayer = ({ egitim, onComplete, onProgress, personelId }) => {
         }
     };
 
-    const handleVideoComplete = async () => {
-        if (!isCompleted && egitim?.id && personelId) {
-            setIsCompleted(true);
-            stopProgressTracking();
-            
-            try {
-                const progressData = {
+    // Expose saveCurrentProgress function to parent components
+    useImperativeHandle(ref, () => ({
+        saveCurrentProgress: saveCurrentProgress
+    }), [saveCurrentProgress]);
+
+    // Effect for page unload handling - placed after saveCurrentProgress definition
+    useEffect(() => {
+        if (!isMounted) return;
+
+        const handleBeforeUnload = (event) => {
+            // Save progress before page unloads
+            if (egitim?.id && personelId && watchedPercentage > 0 && !isCompleted) {
+                console.log('Page unloading, saving current progress...');
+                // Use synchronous call for beforeunload to ensure it completes
+                navigator.sendBeacon && navigator.sendBeacon('/api/VideoEgitim/update-progress', JSON.stringify({
                     videoEgitimId: egitim.id,
                     toplamIzlenenSure: Math.round(currentTime),
                     izlemeYuzdesi: Math.floor(watchedPercentage),
-                    tamamlandiMi: true
-                };
-
-                await videoEgitimService.izlemeKaydet(progressData);
-                
-                // Clear stored progress since video is completed
-                videoEgitimService.clearStoredProgress(egitim.id);
-                
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Tebrikler!',
-                    detail: 'Video eğitimi başarıyla tamamladınız.',
-                    life: 5000
-                });
-
-                if (onComplete) {
-                    onComplete(egitim);
-                }
-            } catch (error) {
-                console.error('Error completing video:', error);
-                toast.current?.show({
-                    severity: 'error',
-                    summary: 'Hata',
-                    detail: 'Tamamlanma durumu kaydedilemedi.',
-                    life: 3000
-                });
+                    tamamlandiMi: isCompleted,
+                    videoPlatform: videoPlatform,
+                    videoToplamSure: Math.round(duration),
+                    izlemeBaslangicSaniye: 0,
+                    izlemeBitisSaniye: Math.round(currentTime),
+                    cihazTipi: 'Desktop'
+                }));
             }
+        };
+
+        const handleVisibilityChange = () => {
+            // Save progress when page becomes hidden
+            if (document.visibilityState === 'hidden' && egitim?.id && personelId && watchedPercentage > 0 && !isCompleted) {
+                console.log('Page hidden, saving current progress...');
+                saveCurrentProgress();
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, [isMounted, egitim?.id, personelId, watchedPercentage, isCompleted, currentTime, videoPlatform, duration, saveCurrentProgress]);
+
+    const handleVideoComplete = async () => {
+        console.log('handleVideoComplete called!');
+
+        // Basic validation
+        if (!egitim?.id || !personelId) {
+            console.log('Video completion blocked - missing egitim ID or personel ID:', { egitimId: egitim?.id, personelId });
+            return;
+        }
+
+        // Check if already processing or completed to prevent multiple calls
+        if (isProcessingCompletion || isCompleted || hasShownCompletionToast) {
+            console.log('Video completion blocked - already processed:', {
+                isProcessingCompletion,
+                isCompleted,
+                hasShownCompletionToast
+            });
+            return;
+        }
+
+        // Check session storage to prevent multiple completions across sessions
+        const completionKey = `video_completion_${egitim?.id}_${personelId}`;
+        const alreadyCompleted = sessionStorage.getItem(completionKey);
+        if (alreadyCompleted) {
+            console.log('Video completion blocked - already completed in this session');
+            return;
+        }
+
+        console.log('Processing video completion...');
+        setIsProcessingCompletion(true);
+        setIsCompleted(true);
+        setHasShownCompletionToast(true);
+
+        // Mark as completed in session storage
+        sessionStorage.setItem(completionKey, 'true');
+
+        stopProgressTracking();
+
+        try {
+            // Get accurate current progress based on video platform
+            let currentProgress = watchedPercentage;
+            let totalWatchedTime = currentTime;
+
+            if (videoPlatform === 'Local' && videoRef.current) {
+                currentProgress = (videoRef.current.currentTime / videoRef.current.duration) * 100;
+                totalWatchedTime = videoRef.current.currentTime;
+            } else if (videoPlatform === 'Vimeo') {
+                // For Vimeo, use current state values which should be updated by tracking
+                currentProgress = watchedPercentage;
+                totalWatchedTime = currentTime;
+            } else if (videoPlatform === 'YouTube') {
+                // For YouTube, use current state values
+                currentProgress = watchedPercentage;
+                totalWatchedTime = currentTime;
+            }
+
+            const progressData = {
+                videoEgitimId: egitim.id,
+                toplamIzlenenSure: Math.round(totalWatchedTime),
+                izlemeYuzdesi: Math.floor(currentProgress),
+                tamamlandiMi: true
+            };
+
+            console.log('Sending completion data:', progressData);
+            await videoEgitimService.izlemeKaydet(progressData);
+
+            // Clear stored progress since video is completed
+            videoEgitimService.clearStoredProgress(egitim.id);
+
+            // Show success toast
+            toast.current?.show({
+                severity: 'success',
+                summary: 'Tebrikler!',
+                detail: 'Eğitimi başarıyla tamamladınız.',
+                life: 5000
+            });
+
+            if (onComplete) {
+                onComplete(egitim);
+            }
+        } catch (error) {
+            console.error('Error completing video:', error);
+
+            // Reset completion state on error to allow retry
+            setIsCompleted(false);
+
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Hata',
+                detail: 'Tamamlanma durumu kaydedilemedi.',
+                life: 3000
+            });
+        } finally {
+            setIsProcessingCompletion(false);
         }
     };
 
@@ -909,6 +1075,20 @@ const VideoPlayer = ({ egitim, onComplete, onProgress, personelId }) => {
 
     if (!egitim) {
         return <div>Video eğitim bulunamadı.</div>;
+    }
+
+    // Don't render anything during SSR to prevent hydration mismatch
+    if (!isMounted) {
+        return (
+            <div className="video-player-container">
+                <Card className="video-player-card">
+                    <div className="video-loading">
+                        <i className="pi pi-spin pi-spinner"></i>
+                        <span>Video player yükleniyor...</span>
+                    </div>
+                </Card>
+            </div>
+        );
     }
 
     const getVideoStatus = () => {
@@ -1089,16 +1269,6 @@ const VideoPlayer = ({ egitim, onComplete, onProgress, personelId }) => {
                             </div>
                         </div>
                         
-                        {watchedPercentage >= egitim.izlenmeMinimum && !isCompleted && (
-                            <div className="progress-item">
-                                <div className="p-3 border-round surface-card">
-                                    <i className="pi pi-check-circle text-green-500 mr-2"></i>
-                                    <span className="text-green-600">
-                                        Minimum izlenme oranına ulaştınız! Eğitimi tamamlamak için video sonuna kadar izlemeye devam edin.
-                                    </span>
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </div>
 
@@ -1115,7 +1285,8 @@ const VideoPlayer = ({ egitim, onComplete, onProgress, personelId }) => {
             </Card>
         </div>
     );
-};
+});
 
+VideoPlayer.displayName = 'VideoPlayer';
 
 export default VideoPlayer;

@@ -82,6 +82,16 @@ const Personeller = () => {
     const [selectedPersoneller, setSelectedPersoneller] = useState(null);
     const [submitted, setSubmitted] = useState(false);
     const [globalFilter, setGlobalFilter] = useState('');
+    const [filters, setFilters] = useState({
+        'tcKimlik': { value: null, matchMode: 'contains' },
+        'adSoyad': { value: null, matchMode: 'contains' },
+        'pozisyonAd': { value: null, matchMode: 'contains' },
+        'departmanAd': { value: null, matchMode: 'contains' },
+        'kademeAd': { value: null, matchMode: 'contains' },
+        'yoneticiAd': { value: null, matchMode: 'contains' },
+        'iseBaslamaTarihi': { value: null, matchMode: 'dateIs' },
+        'aktif': { value: null, matchMode: 'equals' }
+    });
     const [loading, setLoading] = useState(false);
     const [maasUyarisi, setMaasUyarisi] = useState('');
     const [pozisyonMaasBilgi, setPozisyonMaasBilgi] = useState(null);
@@ -813,14 +823,16 @@ const Personeller = () => {
     };
 
     const header = (
-        <div className="table-header">
-            <h5 className="p-m-0">Personel Yönetimi</h5>
-            <span className="p-input-icon-left">
+        <div className="flex justify-content-between align-items-center">
+            <h5 className="m-0">Personel Yönetimi</h5>
+            <span className="p-input-icon-left" style={{ width: '300px' }}>
                 <i className="pi pi-search" />
                 <InputText
                     type="search"
                     onInput={(e) => setGlobalFilter(e.target.value)}
-                    placeholder="Arama yapın..."
+                    placeholder="Genel arama..."
+                    className="w-full"
+                    size="small"
                 />
             </span>
         </div>
@@ -845,6 +857,67 @@ const Personeller = () => {
 
     const createdAtBodyTemplate = (rowData) => {
         return new Date(rowData.createdAt).toLocaleDateString('tr-TR');
+    };
+
+    const statusFilterTemplate = (options) => {
+        return (
+            <Dropdown
+                value={options.value}
+                options={[
+                    { label: 'Aktif', value: true },
+                    { label: 'Pasif', value: false }
+                ]}
+                onChange={(e) => options.filterApplyCallback(e.value)}
+                optionLabel="label"
+                placeholder="Durum"
+                className="p-column-filter"
+                showClear
+                style={{
+                    width: '85%',
+                    fontSize: '0.8rem'
+                }}
+                dropdownStyle={{
+                    height: '2rem',
+                    fontSize: '0.8rem'
+                }}
+                panelStyle={{
+                    fontSize: '0.8rem'
+                }}
+            />
+        );
+    };
+
+    const dateFilterTemplate = (options) => {
+        return (
+            <Calendar
+                value={options.value}
+                onChange={(e) => options.filterApplyCallback(e.value)}
+                dateFormat="dd/mm/yy"
+                placeholder="Tarih"
+                mask="99/99/9999"
+                showIcon
+                locale="tr"
+                className="p-column-filter"
+                style={{
+                    width: '85%',
+                    fontSize: '0.8rem'
+                }}
+                inputStyle={{
+                    height: '2rem',
+                    fontSize: '0.8rem',
+                    padding: '0.3rem 0.5rem'
+                }}
+            />
+        );
+    };
+
+    const statusBodyTemplate = (rowData) => {
+        return (
+            <Badge
+                value={rowData.aktif ? 'Aktif' : 'Pasif'}
+                severity={rowData.aktif ? 'success' : 'warning'}
+            />
+        );
     };
 
     const iseBaslamaBodyTemplate = (rowData) => {
@@ -887,10 +960,17 @@ const Personeller = () => {
                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                     currentPageReportTemplate="{first} - {last} arası, toplam {totalRecords} kayıt"
                     globalFilter={globalFilter}
+                    filters={filters}
+                    onFilter={(e) => setFilters(e.filters)}
+                    filterDisplay="row"
                     header={header}
                     responsiveLayout="scroll"
                     loading={loading}
                     emptyMessage="Personel bulunamadı."
+                    sortField="id"
+                    sortOrder={-1}
+                    size="small"
+                    rowClassName={() => 'p-datatable-row-sm'}
                 >
                     <Column
                         field="id"
@@ -906,40 +986,136 @@ const Personeller = () => {
                     ></Column>
                     <Column
                         field="adSoyad"
-                        header="Ad Soyad"
+                        header={(
+                            <div className="flex align-items-center gap-1">
+                                <span>Ad Soyad</span>
+                                <i className="pi pi-filter text-400" style={{ fontSize: '0.7rem' }}></i>
+                            </div>
+                        )}
                         body={adSoyadWithAvatarTemplate}
                         sortable
+                        filter
+                        filterPlaceholder="Ara..."
+                        filterHeaderStyle={{ padding: '0.25rem', height: '2.2rem' }}
+                        filterStyle={{
+                            fontSize: '0.8rem',
+                            padding: '0.4rem 0.5rem',
+                            height: '2rem',
+                            width: '85%',
+                            lineHeight: '1.2',
+                            minHeight: '2rem'
+                        }}
                         style={{ minWidth: '14rem' }}
                     ></Column>
                     <Column
                         field="tcKimlik"
-                        header="TC Kimlik"
+                        header={(
+                            <div className="flex align-items-center gap-1">
+                                <span>TC Kimlik</span>
+                                <i className="pi pi-filter text-400" style={{ fontSize: '0.7rem' }}></i>
+                            </div>
+                        )}
                         sortable
+                        filter
+                        filterPlaceholder="Ara..."
+                        filterHeaderStyle={{ padding: '0.25rem', height: '2.2rem' }}
+                        filterStyle={{
+                            fontSize: '0.8rem',
+                            padding: '0.4rem 0.5rem',
+                            height: '2rem',
+                            width: '85%',
+                            lineHeight: '1.2',
+                            minHeight: '2rem'
+                        }}
                         style={{ minWidth: '10rem' }}
                     ></Column>
                     <Column
                         field="pozisyonAd"
-                        header="Pozisyon"
+                        header={(
+                            <div className="flex align-items-center gap-1">
+                                <span>Pozisyon</span>
+                                <i className="pi pi-filter text-400" style={{ fontSize: '0.7rem' }}></i>
+                            </div>
+                        )}
                         sortable
+                        filter
+                        filterPlaceholder="Ara..."
+                        filterHeaderStyle={{ padding: '0.25rem', height: '2.2rem' }}
+                        filterStyle={{
+                            fontSize: '0.8rem',
+                            padding: '0.4rem 0.5rem',
+                            height: '2rem',
+                            width: '85%',
+                            lineHeight: '1.2',
+                            minHeight: '2rem'
+                        }}
                         style={{ minWidth: '12rem' }}
                     ></Column>
                     <Column
                         field="departmanAd"
-                        header="Departman"
+                        header={(
+                            <div className="flex align-items-center gap-1">
+                                <span>Departman</span>
+                                <i className="pi pi-filter text-400" style={{ fontSize: '0.7rem' }}></i>
+                            </div>
+                        )}
                         sortable
+                        filter
+                        filterPlaceholder="Ara..."
+                        filterHeaderStyle={{ padding: '0.25rem', height: '2.2rem' }}
+                        filterStyle={{
+                            fontSize: '0.8rem',
+                            padding: '0.4rem 0.5rem',
+                            height: '2rem',
+                            width: '85%',
+                            lineHeight: '1.2',
+                            minHeight: '2rem'
+                        }}
                         style={{ minWidth: '10rem' }}
                     ></Column>
                     <Column
                         field="kademeAd"
-                        header="Kademe"
+                        header={(
+                            <div className="flex align-items-center gap-1">
+                                <span>Kademe</span>
+                                <i className="pi pi-filter text-400" style={{ fontSize: '0.7rem' }}></i>
+                            </div>
+                        )}
                         body={kademeBodyTemplate}
                         sortable
+                        filter
+                        filterPlaceholder="Ara..."
+                        filterHeaderStyle={{ padding: '0.25rem', height: '2.2rem' }}
+                        filterStyle={{
+                            fontSize: '0.8rem',
+                            padding: '0.4rem 0.5rem',
+                            height: '2rem',
+                            width: '85%',
+                            lineHeight: '1.2',
+                            minHeight: '2rem'
+                        }}
                         style={{ minWidth: '10rem' }}
                     ></Column>
                     <Column
                         field="yoneticiAd"
-                        header="Yönetici"
+                        header={(
+                            <div className="flex align-items-center gap-1">
+                                <span>Yönetici</span>
+                                <i className="pi pi-filter text-400" style={{ fontSize: '0.7rem' }}></i>
+                            </div>
+                        )}
                         sortable
+                        filter
+                        filterPlaceholder="Ara..."
+                        filterHeaderStyle={{ padding: '0.25rem', height: '2.2rem' }}
+                        filterStyle={{
+                            fontSize: '0.8rem',
+                            padding: '0.4rem 0.5rem',
+                            height: '2rem',
+                            width: '85%',
+                            lineHeight: '1.2',
+                            minHeight: '2rem'
+                        }}
                         style={{ minWidth: '12rem' }}
                     ></Column>
                     <Column
@@ -951,10 +1127,20 @@ const Personeller = () => {
                     ></Column>
                     <Column
                         field="iseBaslamaTarihi"
-                        header="İşe Başlama"
+                        header={(
+                            <div className="flex align-items-center gap-1">
+                                <span>İşe Başlama</span>
+                                <i className="pi pi-filter text-400" style={{ fontSize: '0.7rem' }}></i>
+                            </div>
+                        )}
                         body={iseBaslamaBodyTemplate}
                         sortable
-                        style={{ minWidth: '10rem' }}
+                        filter
+                        filterElement={dateFilterTemplate}
+                        filterField="iseBaslamaTarihi"
+                        dataType="date"
+                        filterHeaderStyle={{ padding: '0.25rem', height: '2.2rem' }}
+                        style={{ minWidth: '12rem' }}
                     ></Column>
                     <Column
                         field="kalanIzinHakki"
@@ -963,9 +1149,26 @@ const Personeller = () => {
                         style={{ minWidth: '8rem' }}
                     ></Column>
                     <Column
+                        field="aktif"
+                        header={(
+                            <div className="flex align-items-center gap-1">
+                                <span>Durum</span>
+                                <i className="pi pi-filter text-400" style={{ fontSize: '0.7rem' }}></i>
+                            </div>
+                        )}
+                        body={statusBodyTemplate}
+                        sortable
+                        filter
+                        filterElement={statusFilterTemplate}
+                        filterHeaderStyle={{ padding: '0.25rem', height: '2.2rem' }}
+                        style={{ minWidth: '8rem' }}
+                    ></Column>
+                    <Column
                         body={actionBodyTemplate}
                         header="İşlemler"
                         style={{ minWidth: '8rem' }}
+                        frozen
+                        alignFrozen="right"
                     ></Column>
                 </DataTable>
             </Card>
@@ -1248,7 +1451,7 @@ const Personeller = () => {
                                             onValueChange={onMaasChange}
                                             mode="currency"
                                             currency="TRY"
-                                            locale="tr-TR"
+                                            locale="tr"
                                             currencyDisplay="code"
                                             placeholder="0,00"
                                         />

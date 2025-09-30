@@ -287,7 +287,7 @@ namespace BilgeLojistikIK.API.Models
         public int IzlemeYuzdesi { get; set; }
         
         [StringLength(500)]
-        public string SertifikaUrl { get; set; } // PDF dosya yolu
+        public string? SertifikaUrl { get; set; } // PDF dosya yolu
         
         [StringLength(50)]
         public string Durum { get; set; } = "Aktif"; // Aktif, İptal, Süresi Geçmiş

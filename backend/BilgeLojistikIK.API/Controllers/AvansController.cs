@@ -131,23 +131,32 @@ namespace BilgeLojistikIK.API.Controllers
             try
             {
                 var maxLimit = await _avansService.GetMaxAvansLimit(personelId);
-                
-                // Bu ayki kullanılan avans tutarı
+
+                // Bu ayki onaylanmış avans tutarı (sadece kullanılan)
                 var kullanilanAvans = await _context.AvansTalepleri
-                    .Where(a => a.PersonelId == personelId 
-                        && (a.OnayDurumu == "Beklemede" || a.OnayDurumu == "Onaylandı")
+                    .Where(a => a.PersonelId == personelId
+                        && a.OnayDurumu == "Onaylandı"
                         && a.TalepTarihi.Month == DateTime.Now.Month
                         && a.TalepTarihi.Year == DateTime.Now.Year)
                     .SumAsync(a => a.TalepTutari);
 
-                return Ok(new 
-                { 
-                    success = true, 
-                    data = new 
+                // Bu ayki beklemede olan avans tutarı
+                var onayBekleyen = await _context.AvansTalepleri
+                    .Where(a => a.PersonelId == personelId
+                        && a.OnayDurumu == "Beklemede"
+                        && a.TalepTarihi.Month == DateTime.Now.Month
+                        && a.TalepTarihi.Year == DateTime.Now.Year)
+                    .SumAsync(a => a.TalepTutari);
+
+                return Ok(new
+                {
+                    success = true,
+                    data = new
                     {
                         maxLimit = maxLimit,
                         kullanilanAvans = kullanilanAvans,
-                        kalanLimit = maxLimit - kullanilanAvans
+                        onayBekleyen = onayBekleyen,
+                        kalanLimit = maxLimit - kullanilanAvans - onayBekleyen
                     }
                 });
             }

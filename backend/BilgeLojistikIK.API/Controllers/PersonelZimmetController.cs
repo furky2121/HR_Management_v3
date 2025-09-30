@@ -65,6 +65,65 @@ namespace BilgeLojistikIK.API.Controllers
             }
         }
 
+        [HttpGet("GroupedByPersonel")]
+        public async Task<IActionResult> GetGroupedByPersonel()
+        {
+            try
+            {
+                var grupluZimmetler = await _context.PersonelZimmetler
+                    .Include(pz => pz.Personel)
+                        .ThenInclude(p => p.Pozisyon)
+                            .ThenInclude(pos => pos.Departman)
+                    .Include(pz => pz.ZimmetStok)
+                    .Where(pz => pz.Aktif)
+                    .GroupBy(pz => new
+                    {
+                        pz.PersonelId,
+                        PersonelAdSoyad = pz.Personel.Ad + " " + pz.Personel.Soyad,
+                        DepartmanAd = pz.Personel.Pozisyon.Departman.Ad,
+                        PozisyonAd = pz.Personel.Pozisyon.Ad,
+                        PersonelEmail = pz.Personel.Email,
+                        PersonelTelefon = pz.Personel.Telefon
+                    })
+                    .Select(g => new
+                    {
+                        PersonelId = g.Key.PersonelId,
+                        PersonelAdSoyad = g.Key.PersonelAdSoyad,
+                        DepartmanAd = g.Key.DepartmanAd,
+                        PozisyonAd = g.Key.PozisyonAd,
+                        PersonelEmail = g.Key.PersonelEmail,
+                        PersonelTelefon = g.Key.PersonelTelefon,
+                        ToplamZimmet = g.Count(),
+                        AktifZimmet = g.Count(z => z.Durum == "Zimmetli"),
+                        IadeEdilmis = g.Count(z => z.Durum == "Iade Edildi"),
+                        SonZimmetTarihi = g.Max(z => z.ZimmetTarihi),
+                        ZimmetDetaylar = g.Select(z => new
+                        {
+                            z.Id,
+                            z.ZimmetStokId,
+                            MalzemeAdi = z.ZimmetStok.MalzemeAdi,
+                            Marka = z.ZimmetStok.Marka,
+                            Model = z.ZimmetStok.Model,
+                            SeriNo = z.ZimmetStok.SeriNo,
+                            z.ZimmetMiktar,
+                            z.ZimmetTarihi,
+                            z.IadeTarihi,
+                            z.Durum,
+                            z.ZimmetNotu,
+                            z.IadeNotu
+                        }).OrderByDescending(z => z.ZimmetTarihi).ToList()
+                    })
+                    .OrderBy(g => g.PersonelAdSoyad)
+                    .ToListAsync();
+
+                return Ok(new { success = true, data = grupluZimmetler });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Gruplu veriler getirilirken hata oluştu: " + ex.Message });
+            }
+        }
+
         [HttpGet("Personel/{personelId:int}")]
         public async Task<IActionResult> GetByPersonelId(int personelId)
         {
@@ -270,7 +329,7 @@ namespace BilgeLojistikIK.API.Controllers
                     if (stok.KalanMiktar < zimmetMiktar)
                     {
                         await transaction.RollbackAsync();
-                        return BadRequest(new { success = false, message = $"Yetersiz stok: {stok.MalzemeAdi}. Mevcut: {stok.KalanMiktar}, Talep edilen: {zimmetMiktar}" });
+                        return BadRequest(new { success = false, message = $"Yetersiz stok: {stok.MalzemeAdi}. Kalan stok: {stok.KalanMiktar}, Talep edilen: {zimmetMiktar}. Lütfen mevcut stok miktarından fazla zimmet talebinde bulunmayın." });
                     }
                 }
 
@@ -346,7 +405,7 @@ namespace BilgeLojistikIK.API.Controllers
 
                 if (stok.KalanMiktar < zimmetMiktar)
                 {
-                    return BadRequest(new { success = false, message = $"Yetersiz stok. Mevcut: {stok.KalanMiktar}, Talep edilen: {zimmetMiktar}" });
+                    return BadRequest(new { success = false, message = $"Yetersiz stok: {stok.MalzemeAdi}. Kalan stok: {stok.KalanMiktar}, Talep edilen: {zimmetMiktar}. Lütfen mevcut stok miktarından fazla zimmet talebinde bulunmayın." });
                 }
 
                 // Create PersonelZimmet record

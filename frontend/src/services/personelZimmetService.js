@@ -5,6 +5,10 @@ class PersonelZimmetService {
         return apiService.get('/personelzimmet');
     }
 
+    async getGroupedByPersonel() {
+        return apiService.get('/PersonelZimmet/GroupedByPersonel');
+    }
+
     async getByPersonelId(personelId) {
         return apiService.get(`/personelzimmet/Personel/${personelId}`);
     }

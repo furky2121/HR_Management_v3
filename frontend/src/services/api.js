@@ -92,6 +92,9 @@ class ApiService {
                         case 404:
                             errorMessage = 'İstenen kaynak bulunamadı.';
                             break;
+                        case 415:
+                            errorMessage = 'Desteklenmeyen dosya formatı.';
+                            break;
                         case 500:
                             errorMessage = 'Sunucu hatası oluştu. Lütfen tekrar deneyin.';
                             break;
@@ -122,6 +125,14 @@ class ApiService {
 
     // POST request
     async post(endpoint, data) {
+        // FormData için özel işlem - JSON.stringify kullanma
+        if (data instanceof FormData) {
+            return this.request(endpoint, {
+                method: 'POST',
+                body: data
+            });
+        }
+
         return this.request(endpoint, {
             method: 'POST',
             body: JSON.stringify(data),
@@ -162,4 +173,5 @@ class ApiService {
     }
 }
 
+export { ApiService };
 export default new ApiService();

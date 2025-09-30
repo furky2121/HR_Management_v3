@@ -75,14 +75,18 @@ const EgitimKatilimlariPage = () => {
         try {
             setLoading(true);
             const response = await videoEgitimService.getAtamalar();
+            console.log('Atamalar response:', response);
             if (response.success) {
+                console.log('Atamalar data:', response.data);
+                console.log('Sample atama:', response.data[0]);
                 setAtamalar(response.data);
             }
         } catch (error) {
-            toast.current?.show({ 
-                severity: 'error', 
-                summary: 'Hata', 
-                detail: 'Atamalar yüklenirken hata oluştu' 
+            console.error('Atamalar yükleme hatası:', error);
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Hata',
+                detail: 'Atamalar yüklenirken hata oluştu'
             });
         } finally {
             setLoading(false);

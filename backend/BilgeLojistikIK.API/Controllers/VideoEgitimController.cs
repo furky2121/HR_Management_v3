@@ -88,7 +88,7 @@ namespace BilgeLojistikIK.API.Controllers
                 if (kategori.Id == 0)
                 {
                     // Yeni kategori
-                    kategori.OlusturmaTarihi = DateTime.Now;
+                    kategori.OlusturmaTarihi = DateTime.UtcNow;
                     _context.VideoKategoriler.Add(kategori);
                 }
                 else
@@ -281,13 +281,17 @@ namespace BilgeLojistikIK.API.Controllers
         [HttpGet("atamalar")]
         public async Task<IActionResult> GetAtamalar()
         {
+            Console.WriteLine($"=== GET /api/VideoEgitim/atamalar ===");
             try
             {
                 var atamalar = await _context.VideoAtamalar
                     .Include(a => a.VideoEgitim)
                     .Include(a => a.Personel)
+                        .ThenInclude(p => p.Pozisyon)
+                        .ThenInclude(poz => poz.Departman)
                     .Include(a => a.Departman)
                     .Include(a => a.Pozisyon)
+                        .ThenInclude(poz => poz.Departman)
                     .Include(a => a.AtayanPersonel)
                     .OrderByDescending(a => a.AtamaTarihi)
                     .Select(a => new
@@ -295,14 +299,26 @@ namespace BilgeLojistikIK.API.Controllers
                         a.Id,
                         VideoEgitimAd = a.VideoEgitim.Baslik,
                         PersonelAd = a.Personel != null ? $"{a.Personel.Ad} {a.Personel.Soyad}" : null,
-                        DepartmanAd = a.Departman != null ? a.Departman.Ad : null,
-                        PozisyonAd = a.Pozisyon != null ? a.Pozisyon.Ad : null,
+                        // For personnel assignments, get department and position from their assigned position
+                        // For department/position assignments, get from the assignment itself
+                        DepartmanAd = a.PersonelId != null && a.Personel != null && a.Personel.Pozisyon != null && a.Personel.Pozisyon.Departman != null
+                            ? a.Personel.Pozisyon.Departman.Ad
+                            : (a.Departman != null ? a.Departman.Ad : (a.Pozisyon != null && a.Pozisyon.Departman != null ? a.Pozisyon.Departman.Ad : null)),
+                        PozisyonAd = a.PersonelId != null && a.Personel != null && a.Personel.Pozisyon != null
+                            ? a.Personel.Pozisyon.Ad
+                            : (a.Pozisyon != null ? a.Pozisyon.Ad : null),
                         AtayanPersonelAd = a.AtayanPersonel != null ? $"{a.AtayanPersonel.Ad} {a.AtayanPersonel.Soyad}" : null,
                         a.AtamaTarihi,
                         a.Durum,
                         a.Not
                     })
                     .ToListAsync();
+
+                Console.WriteLine($"Atamalar count: {atamalar.Count}");
+                foreach (var atama in atamalar.Take(3))
+                {
+                    Console.WriteLine($"ID: {atama.Id}, VideoEgitim: {atama.VideoEgitimAd}, Personel: {atama.PersonelAd}, Departman: {atama.DepartmanAd}, Pozisyon: {atama.PozisyonAd}");
+                }
 
                 return Ok(new { success = true, data = atamalar });
             }
@@ -332,6 +348,7 @@ namespace BilgeLojistikIK.API.Controllers
 
                 var sertifikalar = await _context.VideoSertifikalar
                     .Include(s => s.VideoEgitim)
+                        .ThenInclude(ve => ve.Kategori)
                     .Include(s => s.Personel)
                     .Where(s => s.PersonelId == kullanici.Personel.Id)
                     .OrderByDescending(s => s.VerilisTarihi)
@@ -343,7 +360,10 @@ namespace BilgeLojistikIK.API.Controllers
                         PersonelAd = $"{s.Personel.Ad} {s.Personel.Soyad}",
                         s.VerilisTarihi,
                         s.GecerlilikTarihi,
-                        s.Durum
+                        Durum = s.GecerlilikTarihi.HasValue && s.GecerlilikTarihi < DateTime.UtcNow ? "Süresi Dolmuş" : s.Durum,
+                        s.IzlemeYuzdesi,
+                        ToplamSure = s.VideoEgitim.Sure,
+                        KategoriAd = s.VideoEgitim.Kategori != null ? s.VideoEgitim.Kategori.Ad : "Bilinmiyor"
                     })
                     .ToListAsync();
 
@@ -494,7 +514,7 @@ namespace BilgeLojistikIK.API.Controllers
                 if (egitim.Id == 0)
                 {
                     // Yeni eğitim
-                    egitim.OlusturmaTarihi = DateTime.Now;
+                    egitim.OlusturmaTarihi = DateTime.UtcNow;
                     _context.VideoEgitimler.Add(egitim);
                 }
                 else
@@ -531,7 +551,7 @@ namespace BilgeLojistikIK.API.Controllers
                     existingEgitim.ZorunluMu = egitim.ZorunluMu;
                     existingEgitim.SonTamamlanmaTarihi = egitim.SonTamamlanmaTarihi;
                     existingEgitim.Aktif = egitim.Aktif;
-                    existingEgitim.GuncellemeTarihi = DateTime.Now;
+                    existingEgitim.GuncellemeTarihi = DateTime.UtcNow;
                     
                     _context.VideoEgitimler.Update(existingEgitim);
                 }
@@ -926,12 +946,12 @@ namespace BilgeLojistikIK.API.Controllers
                 {
                     VideoEgitimId = model.VideoEgitimId,
                     PersonelId = kullanici.Personel.Id,
-                    IzlemeBaslangic = DateTime.Now,
-                    IzlemeBitis = model.TamamlandiMi ? DateTime.Now : null,
+                    IzlemeBaslangic = DateTime.UtcNow,
+                    IzlemeBitis = model.TamamlandiMi ? DateTime.UtcNow : null,
                     ToplamIzlenenSure = model.ToplamIzlenenSure,
                     IzlemeYuzdesi = model.IzlemeYuzdesi,
                     TamamlandiMi = model.TamamlandiMi,
-                    TamamlanmaTarihi = model.TamamlandiMi ? DateTime.Now : null,
+                    TamamlanmaTarihi = model.TamamlandiMi ? DateTime.UtcNow : null,
                     CihazTipi = model.CihazTipi ?? "Web",
                     IpAdresi = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1",
                     
@@ -1015,9 +1035,12 @@ namespace BilgeLojistikIK.API.Controllers
         [HttpPost("sertifika/{videoEgitimId}")]
         public async Task<IActionResult> SertifikaOlustur(int videoEgitimId)
         {
+            Console.WriteLine($"=== REQUEST: POST /api/VideoEgitim/sertifika/{videoEgitimId} ===");
+
             try
             {
                 var kullaniciIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                Console.WriteLine($"KullaniciId from claim: {kullaniciIdClaim}");
                 if (string.IsNullOrEmpty(kullaniciIdClaim))
                     return Unauthorized(new { success = false, message = "Kullanıcı bilgisi bulunamadı" });
 
@@ -1396,8 +1419,8 @@ namespace BilgeLojistikIK.API.Controllers
                 var progressData = new IzlemeKayitModel
                 {
                     VideoEgitimId = videoEgitimId,
-                    IzlemeBaslangic = DateTime.Now,
-                    IzlemeBitis = tamamlandiMi ? DateTime.Now : null,
+                    IzlemeBaslangic = DateTime.UtcNow,
+                    IzlemeBitis = tamamlandiMi ? DateTime.UtcNow : null,
                     ToplamIzlenenSure = toplamIzlenenSure,
                     IzlemeYuzdesi = izlemeYuzdesi,
                     TamamlandiMi = tamamlandiMi,
@@ -1415,6 +1438,72 @@ namespace BilgeLojistikIK.API.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error in UpdateVideoProgress: {ex.Message}");
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        // Eğitim raporları için istatistikler
+        [AllowAnonymous]
+        [HttpGet("rapor-istatistikleri")]
+        public async Task<IActionResult> GetRaporIstatistikleri()
+        {
+            try
+            {
+                var istatistikler = await _videoEgitimService.GetRaporIstatistikleriAsync();
+                return Ok(new { success = true, data = istatistikler });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        // Personel eğitim özeti
+        [AllowAnonymous]
+        [HttpGet("personel-egitim-ozeti")]
+        public async Task<IActionResult> GetPersonelEgitimOzeti()
+        {
+            try
+            {
+                var ozet = await _videoEgitimService.GetPersonelEgitimOzetiAsync();
+                return Ok(new { success = true, data = ozet });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        // Departman raporu
+        [AllowAnonymous]
+        [HttpGet("departman-raporu")]
+        public async Task<IActionResult> GetDepartmanRaporu([FromQuery] int year = 0)
+        {
+            try
+            {
+                if (year == 0) year = DateTime.Now.Year;
+                var rapor = await _videoEgitimService.GetDepartmanRaporuAsync(year);
+                return Ok(new { success = true, data = rapor });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        // Aylık video eğitim trendi
+        [AllowAnonymous]
+        [HttpGet("aylik-egitim-trendi")]
+        public async Task<IActionResult> GetAylikEgitimTrendi([FromQuery] int year = 0)
+        {
+            try
+            {
+                if (year == 0) year = DateTime.Now.Year;
+                var trend = await _videoEgitimService.GetAylikEgitimTrendiAsync(year);
+                return Ok(new { success = true, data = trend });
+            }
+            catch (Exception ex)
+            {
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
         }

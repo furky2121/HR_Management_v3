@@ -25,6 +25,7 @@ namespace BilgeLojistikIK.API.Data
         public DbSet<PersonelZimmet> PersonelZimmetler { get; set; }
         public DbSet<ZimmetStokDosya> ZimmetStokDosyalar { get; set; }
         public DbSet<AvansTalebi> AvansTalepleri { get; set; }
+        public DbSet<MasrafTalebi> MasrafTalepleri { get; set; }
         public DbSet<IstifaTalebi> IstifaTalepleri { get; set; }
         
         // Video Eğitim Tabloları
@@ -37,6 +38,27 @@ namespace BilgeLojistikIK.API.Data
         public DbSet<VideoSoruCevap> VideoSoruCevaplar { get; set; }
         public DbSet<VideoSertifika> VideoSertifikalar { get; set; }
         public DbSet<PersonelGirisCikis> PersonelGirisCikislar { get; set; }
+
+        // İşe Alım Tabloları
+        public DbSet<IlanKategori> IlanKategoriler { get; set; }
+        public DbSet<IsIlani> IsIlanlari { get; set; }
+        public DbSet<Aday> Adaylar { get; set; }
+        public DbSet<AdayDeneyim> AdayDeneyimleri { get; set; }
+        public DbSet<AdayYetenek> AdayYetenekleri { get; set; }
+        public DbSet<AdayCV> AdayCVleri { get; set; }
+        public DbSet<AdayDurumGecmisi> AdayDurumGecmisleri { get; set; }
+        public DbSet<AdayEgitim> AdayEgitimleri { get; set; }
+        public DbSet<AdaySertifika> AdaySertifikalari { get; set; }
+        public DbSet<AdayReferans> AdayReferanslari { get; set; }
+        public DbSet<AdayDil> AdayDilleri { get; set; }
+        public DbSet<AdayProje> AdayProjeleri { get; set; }
+        public DbSet<AdayHobi> AdayHobileri { get; set; }
+        public DbSet<Basvuru> Basvurular { get; set; }
+        public DbSet<Mulakat> Mulakatlar { get; set; }
+        public DbSet<TeklifMektubu> TeklifMektuplari { get; set; }
+
+        // Şehirler tablosu
+        public DbSet<Sehir> Sehirler { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -237,6 +259,198 @@ namespace BilgeLojistikIK.API.Data
 
             modelBuilder.Entity<PersonelGirisCikis>()
                 .ToTable(t => t.HasCheckConstraint("CK_PersonelGirisCikis_GirisTipi", "giris_tipi IN ('Normal', 'Fazla Mesai', 'Hafta Sonu')"));
+
+            // İşe Alım relationships
+            modelBuilder.Entity<IlanKategori>()
+                .HasIndex(ik => ik.Ad)
+                .IsUnique();
+
+            modelBuilder.Entity<Aday>()
+                .HasIndex(a => a.TcKimlik)
+                .IsUnique();
+
+            modelBuilder.Entity<Aday>()
+                .HasIndex(a => a.Email)
+                .IsUnique();
+
+            modelBuilder.Entity<IsIlani>()
+                .HasOne(i => i.Kategori)
+                .WithMany(k => k.IsIlanlari)
+                .HasForeignKey(i => i.KategoriId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<IsIlani>()
+                .HasOne(i => i.Pozisyon)
+                .WithMany()
+                .HasForeignKey(i => i.PozisyonId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<IsIlani>()
+                .HasOne(i => i.Departman)
+                .WithMany()
+                .HasForeignKey(i => i.DepartmanId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<IsIlani>()
+                .HasOne(i => i.Olusturan)
+                .WithMany()
+                .HasForeignKey(i => i.OlusturanId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<AdayDeneyim>()
+                .HasOne(ad => ad.Aday)
+                .WithMany(a => a.Deneyimler)
+                .HasForeignKey(ad => ad.AdayId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<AdayYetenek>()
+                .HasOne(ay => ay.Aday)
+                .WithMany(a => a.Yetenekler)
+                .HasForeignKey(ay => ay.AdayId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<AdayCV>()
+                .HasOne(ac => ac.Aday)
+                .WithMany(a => a.CVler)
+                .HasForeignKey(ac => ac.AdayId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<AdayDurumGecmisi>()
+                .HasOne(adg => adg.Aday)
+                .WithMany(a => a.DurumGecmisi)
+                .HasForeignKey(adg => adg.AdayId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<AdayDurumGecmisi>()
+                .HasOne(adg => adg.DegistirenPersonel)
+                .WithMany()
+                .HasForeignKey(adg => adg.DegistirenPersonelId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<AdayDurumGecmisi>()
+                .HasOne(adg => adg.IlgiliBasvuru)
+                .WithMany()
+                .HasForeignKey(adg => adg.IlgiliBasvuruId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<AdayDurumGecmisi>()
+                .HasOne(adg => adg.IlgiliMulakat)
+                .WithMany()
+                .HasForeignKey(adg => adg.IlgiliMulakatId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Basvuru>()
+                .HasOne(b => b.Ilan)
+                .WithMany(i => i.Basvurular)
+                .HasForeignKey(b => b.IlanId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Basvuru>()
+                .HasOne(b => b.Aday)
+                .WithMany(a => a.Basvurular)
+                .HasForeignKey(b => b.AdayId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Basvuru>()
+                .HasOne(b => b.Degerlendiren)
+                .WithMany()
+                .HasForeignKey(b => b.DegerlendirenId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Mulakat>()
+                .HasOne(m => m.Basvuru)
+                .WithMany(b => b.Mulakatlar)
+                .HasForeignKey(m => m.BasvuruId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Mulakat>()
+                .HasOne(m => m.MulakatYapan)
+                .WithMany()
+                .HasForeignKey(m => m.MulakatYapanId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TeklifMektubu>()
+                .HasOne(t => t.Basvuru)
+                .WithMany()
+                .HasForeignKey(t => t.BasvuruId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TeklifMektubu>()
+                .HasOne(t => t.Hazirlayan)
+                .WithMany()
+                .HasForeignKey(t => t.HazirlayanId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // İşe Alım check constraints
+            modelBuilder.Entity<IsIlani>()
+                .ToTable(t => t.HasCheckConstraint("CK_IsIlani_Durum", "durum IN (1, 2, 3, 4)"));
+
+            modelBuilder.Entity<Aday>()
+                .ToTable(t => t.HasCheckConstraint("CK_Aday_Durum", "durum IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)"));
+
+            modelBuilder.Entity<Basvuru>()
+                .ToTable(t => t.HasCheckConstraint("CK_Basvuru_Durum", "durum IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)"));
+
+            modelBuilder.Entity<Mulakat>()
+                .ToTable(t => t.HasCheckConstraint("CK_Mulakat_Tur", "tur IN (1, 2, 3, 4, 5)"));
+
+            modelBuilder.Entity<AdayCV>()
+                .ToTable(t => t.HasCheckConstraint("CK_AdayCV_CVTipi", "cv_tipi IN ('Otomatik', 'Yuklenmiş')"));
+
+            // Yeni Aday Entity Relationships
+            modelBuilder.Entity<AdayEgitim>()
+                .HasOne(ae => ae.Aday)
+                .WithMany(a => a.Egitimler)
+                .HasForeignKey(ae => ae.AdayId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<AdaySertifika>()
+                .HasOne(s => s.Aday)
+                .WithMany(a => a.Sertifikalar)
+                .HasForeignKey(s => s.AdayId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<AdayReferans>()
+                .HasOne(ar => ar.Aday)
+                .WithMany(a => a.Referanslar)
+                .HasForeignKey(ar => ar.AdayId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<AdayDil>()
+                .HasOne(ad => ad.Aday)
+                .WithMany(a => a.Diller)
+                .HasForeignKey(ad => ad.AdayId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<AdayProje>()
+                .HasOne(ap => ap.Aday)
+                .WithMany(a => a.Projeler)
+                .HasForeignKey(ap => ap.AdayId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<AdayHobi>()
+                .HasOne(ah => ah.Aday)
+                .WithMany(a => a.Hobiler)
+                .HasForeignKey(ah => ah.AdayId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Yeni validation constraints
+            modelBuilder.Entity<AdayDil>()
+                .ToTable(t => t.HasCheckConstraint("CK_AdayDil_Seviyeler", "okuma_seviyesi BETWEEN 1 AND 5 AND yazma_seviyesi BETWEEN 1 AND 5 AND konusma_seviyesi BETWEEN 1 AND 5"));
+
+            // Şehir constraints
+            modelBuilder.Entity<Sehir>()
+                .HasIndex(s => s.SehirAd)
+                .IsUnique();
+
+            modelBuilder.Entity<Sehir>()
+                .HasIndex(s => s.PlakaKodu)
+                .IsUnique();
+
+            // Aday DogumTarihi field - explicitly map as date type to prevent timezone issues
+            modelBuilder.Entity<Aday>()
+                .Property(a => a.DogumTarihi)
+                .HasColumnType("date");
         }
 
         public override int SaveChanges()

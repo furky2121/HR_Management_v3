@@ -214,6 +214,7 @@ const Dashboard = () => {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (response.data.success) {
+                console.log('Yaklaşan doğum günleri data:', response.data.data);
                 setYaklasanDogumGunleri(response.data.data);
             }
         } catch (error) {
@@ -627,6 +628,10 @@ const Dashboard = () => {
                                         <Badge value={genelIstatistikler?.izinIstatistikleri?.onaylananIzin || 0} severity="success" />
                                     </div>
                                     <div className="flex align-items-center justify-content-between">
+                                        <span>Bekleyen</span>
+                                        <Badge value={genelIstatistikler?.izinIstatistikleri?.bekleyenIzin || 0} severity="warning" />
+                                    </div>
+                                    <div className="flex align-items-center justify-content-between">
                                         <span>Reddedilen</span>
                                         <Badge value={genelIstatistikler?.izinIstatistikleri?.reddedilenIzin || 0} severity="danger" />
                                     </div>
@@ -833,8 +838,26 @@ const Dashboard = () => {
                                         {yaklasanDogumGunleri.slice(0, 5).map((personel, index) => (
                                             <div key={index} className="flex align-items-center justify-content-between p-2 border-round surface-hover">
                                                 <div className="flex align-items-center gap-3">
-                                                    <div className="flex align-items-center justify-content-center bg-blue-100 border-circle" style={{width: '45px', height: '45px'}}>
-                                                        <i className="pi pi-user text-blue-600 text-xl"></i>
+                                                    <div className="flex align-items-center justify-content-center bg-blue-100 border-circle" style={{width: '60px', height: '60px', overflow: 'hidden', border: '2px solid #e3f2fd', boxShadow: '0 2px 8px rgba(0,0,0,0.1)'}}>
+                                                        {personel.fotoUrl ? (
+                                                            <img 
+                                                                src={`${api.getBaseURL().replace('/api', '')}${personel.fotoUrl}`} 
+                                                                alt={personel.adSoyad}
+                                                                style={{
+                                                                    width: '100%', 
+                                                                    height: '100%', 
+                                                                    objectFit: 'cover',
+                                                                    borderRadius: '50%',
+                                                                    background: '#f5f5f5'
+                                                                }}
+                                                                loading="lazy"
+                                                                onError={(e) => {
+                                                                    e.target.style.display = 'none';
+                                                                    e.target.nextSibling.style.display = 'block';
+                                                                }}
+                                                            />
+                                                        ) : null}
+                                                        <i className="pi pi-user text-blue-600 text-2xl" style={{display: personel.fotoUrl ? 'none' : 'block'}}></i>
                                                     </div>
                                                     <div>
                                                         <div className="font-semibold">{personel.adSoyad}</div>

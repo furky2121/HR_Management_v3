@@ -67,8 +67,9 @@ dotnet ef database update
 
 **Service Layer**:
 - **Interface-Based Design**: All services have corresponding interfaces registered with DI
-- **Business Logic Separation**: Complex rules in services (UserService, IzinService, VideoEgitimService)
+- **Business Logic Separation**: Complex rules in services (UserService, IzinService, VideoEgitimService, CVService, StatusService, MasrafService)
 - **Turkish Localization**: Character conversion, timezone handling (Turkey Standard Time)
+- **Document Generation**: CVService handles automatic CV generation from candidate data
 
 **Data Access Patterns**:
 - **Code-First EF Core**: Snake_case columns for PostgreSQL, explicit foreign keys
@@ -108,7 +109,7 @@ dotnet ef database update
 ```
 Kademe (1) → (N) Pozisyon
 Kademe (1) → (N) KademeEkranYetkisi
-Departman (1) → (N) Pozisyon  
+Departman (1) → (N) Pozisyon
 Pozisyon (1) → (N) Personel
 Personel (1) → (1) Kullanici
 Personel (1) → (N) IzinTalebi
@@ -119,7 +120,24 @@ Personel (1) → (N) AvansTalebi
 Personel (1) → (N) IstifaTalebi
 Personel (1) → (N) PersonelGirisCikis
 Personel (1) → (N) PersonelZimmet
+Personel (1) → (N) MasrafTalebi
 EkranYetkisi (1) → (N) KademeEkranYetkisi
+
+# Recruitment Module Relationships
+Sehir (1) → (N) Aday
+IlanKategorisi (1) → (N) IsIlani
+IsIlani (1) → (N) Basvuru
+Aday (1) → (N) Basvuru
+Basvuru (1) → (N) Mulakat
+Basvuru (1) → (N) TeklifMektubu
+Aday (1) → (N) AdayEgitim
+Aday (1) → (N) AdayDeneyim
+Aday (1) → (N) AdayYetenek
+Aday (1) → (N) AdaySertifika
+Aday (1) → (N) AdayReferans
+Aday (1) → (N) AdayDil
+Aday (1) → (N) AdayProje
+Aday (1) → (N) AdayHobi
 ```
 
 ## Critical Business Rules
@@ -169,6 +187,25 @@ EkranYetkisi (1) → (N) KademeEkranYetkisi
 - Working hours calculation (minutes)
 - Overtime tracking with different entry types (Normal, Overtime, Weekend)
 
+### Recruitment Management
+- Candidate status workflow: CV Pool → Applied → Under Review → Interview Planned → Interview Completed → Reference Check → Offer Prepared → Offer Sent → Offer Pending → Hired/Rejected
+- Automatic CV generation from comprehensive candidate profiles
+- Multi-stage interview process (HR, Technical, Management, General Manager)
+- Offer letter management with expiration dates
+- Job posting with categories and requirements
+- Application tracking and candidate pool management
+
+### Expense Management
+- Expense categories: Food (Yemek), Transportation (Ulasim), Accommodation (Konaklama), Training (Egitim), Other (Diger)
+- Receipt attachment requirements
+- Multi-level approval workflow: Employee → Manager → Finance
+- Expense amount limits and validation
+
+### City Management
+- Complete Turkish cities database with plate codes
+- Integration with candidate address information
+- Used for demographic analysis and reporting
+
 ## Configuration
 
 ### Backend Configuration (`appsettings.json`)
@@ -200,7 +237,7 @@ EkranYetkisi (1) → (N) KademeEkranYetkisi
 
 ### Completed Modules
 - ✅ **Departman**: Full CRUD with active/passive management
-- ✅ **Kademe**: Full CRUD with active/passive management  
+- ✅ **Kademe**: Full CRUD with active/passive management
 - ✅ **Pozisyon**: Basic CRUD (active/passive pending)
 - ✅ **Personel**: Full management with photo upload and detailed profile fields
 - ✅ **İzin Yönetimi**: Multi-level approval workflow with leave balance tracking
@@ -213,19 +250,33 @@ EkranYetkisi (1) → (N) KademeEkranYetkisi
 - ✅ **İstifa İşlemleri**: Resignation process management
 - ✅ **Personel Giriş/Çıkış**: Time tracking and attendance management
 - ✅ **Zimmet Yönetimi**: Asset management and tracking
+- ✅ **İşe Alım Modülü**: Complete recruitment management system
+  - Job posting and categories (İlan Kategorileri)
+  - Job listings management (İş İlanları)
+  - Candidate pool with detailed profiles (Özgeçmiş Havuzu)
+  - Application tracking (Başvuru Yönetimi)
+  - Interview scheduling (Mülakat Takvimi)
+  - Offer letter management (Teklif Yönetimi)
+  - Hiring process workflow (İşe Alım Süreçleri)
+- ✅ **Masraf Yönetimi**: Employee expense management with approval workflow
+  - Expense requests (Masraf Talepleri)
+  - Expense approval (Masraf Onay)
+- ✅ **Şehir Yönetimi**: Turkish cities database with plate codes
+- ✅ **CV Otomatik Oluşturma**: Automatic CV generation from candidate data
 
 ### Recently Added Modules
-- 🆕 **Avans Yönetimi**: Advance payment request and approval system
-- 🆕 **İstifa Yönetimi**: Resignation process with exit procedures
-- 🆕 **Personel Giriş/Çıkış**: Time attendance and work hour tracking
-- 🆕 **Video Eğitim Atama**: Personalized video training assignments
+- 🆕 **İşe Alım Sistemi**: Complete recruitment and hiring management (Major Release)
+- 🆕 **Masraf Yönetimi**: Employee expense request and approval workflow
+- 🆕 **CV Oluşturma Servisi**: Automatic CV generation with professional formatting
+- 🆕 **Şehir Veritabanı**: Turkish cities with plate codes for demographic data
+- 🆕 **Gelişmiş Aday Profilleri**: Comprehensive candidate profiles with education, experience, skills, certifications
 
 ### Pending Enhancements
 - ⏳ Pozisyon active/passive implementation
 - ⏳ Unit test coverage
 - ⏳ API documentation (Swagger)
 - ⏳ Email notification system
-- ⏳ Report export (Excel/PDF)
+- ✅ **Report export (Excel/PDF)**: Implemented with jspdf, xlsx libraries
 
 ## Demo Accounts
 | Role | Username | Password | Access Level |
@@ -237,8 +288,11 @@ EkranYetkisi (1) → (N) KademeEkranYetkisi
 
 ## File Upload Configuration
 - Avatar path: `wwwroot/uploads/avatars/`
+- CV files path: `wwwroot/uploads/cvs/`
+- Candidate photos path: `wwwroot/uploads/candidates/`
+- Expense receipts path: `wwwroot/uploads/receipts/`
 - Max file size: 10MB
-- Supported formats: JPG, PNG, GIF
+- Supported formats: JPG, PNG, GIF, PDF, DOC, DOCX
 - Static file serving configured in `Program.cs`
 
 ## Testing Guidelines
@@ -306,6 +360,9 @@ All services use interface-based dependency injection:
 // In Program.cs
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IIzinService, IzinService>();
+builder.Services.AddScoped<ICVService, CVService>();
+builder.Services.AddScoped<IStatusService, StatusService>();
+builder.Services.AddScoped<IMasrafService, MasrafService>();
 ```
 
 ## Frontend API Call Pattern
@@ -318,4 +375,13 @@ async getAll() {
 
 async getAktif() {
     return await this.get('/personel/aktif');
+}
+
+// Recruitment module example
+async getAdaylar() {
+    return await this.get('/aday');
+}
+
+async generateCV(adayId) {
+    return await this.get(`/aday/${adayId}/cv-generate`);
 }

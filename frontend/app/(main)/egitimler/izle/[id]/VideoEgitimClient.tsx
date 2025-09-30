@@ -18,6 +18,7 @@ interface Props {
 const VideoEgitimClient = ({ id }: Props) => {
     const router = useRouter();
     const toast = useRef<Toast>(null);
+    const videoPlayerRef = useRef<any>(null);
     const [egitim, setEgitim] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [personelId, setPersonelId] = useState<number | null>(null);
@@ -142,10 +143,63 @@ const VideoEgitimClient = ({ id }: Props) => {
 
     const handleVideoComplete = (completedEgitim: any) => {
         setCompletionDialog(true);
+        // Update egitim state to reflect completion for immediate UI update
         setEgitim((prev: any) => ({
             ...prev,
-            tamamlandiMi: true
+            tamamlandiMi: true,
+            izlemeYuzdesi: prev?.izlenmeMinimum || 80 // Set to minimum required percentage
         }));
+    };
+
+    const handleContinueWatching = () => {
+        setCompletionDialog(false);
+        // Video continues playing from where it left off
+    };
+
+    const handleCreateCertificateAndExit = async () => {
+        // Save progress first
+        if (videoPlayerRef.current && videoPlayerRef.current.saveCurrentProgress) {
+            try {
+                console.log('Saving progress before certificate creation...');
+                await videoPlayerRef.current.saveCurrentProgress();
+            } catch (error) {
+                console.error('Error saving progress before certificate:', error);
+            }
+        }
+
+        // Create certificate
+        if (egitim?.id && personelId) {
+            try {
+                const response = await videoEgitimService.sertifikaOlustur(egitim.id);
+                if (response.success) {
+                    toast.current?.show({
+                        severity: 'success',
+                        summary: 'Başarılı',
+                        detail: 'Sertifikanız oluşturuldu! Bana Atanan Eğitimler sayfasına yönlendiriliyorsunuz.'
+                    });
+
+                    // Redirect to assigned trainings after short delay
+                    setTimeout(() => {
+                        router.push('/bana-atanan-egitimler');
+                    }, 2000);
+                } else {
+                    toast.current?.show({
+                        severity: 'error',
+                        summary: 'Hata',
+                        detail: 'Sertifika oluşturulamadı.'
+                    });
+                }
+            } catch (error) {
+                console.error('Error creating certificate:', error);
+                toast.current?.show({
+                    severity: 'error',
+                    summary: 'Hata',
+                    detail: 'Sertifika oluşturulurken hata oluştu.'
+                });
+            }
+        }
+
+        setCompletionDialog(false);
     };
 
     const handleCreateCertificate = async () => {
@@ -180,12 +234,39 @@ const VideoEgitimClient = ({ id }: Props) => {
         }
     };
 
-    const handleGoToEgitimler = () => {
+    const handleGoToEgitimler = async () => {
+        // Save progress before navigating away
+        if (videoPlayerRef.current && videoPlayerRef.current.saveCurrentProgress) {
+            try {
+                console.log('Saving progress before navigation...');
+                await videoPlayerRef.current.saveCurrentProgress();
+            } catch (error) {
+                console.error('Error saving progress before navigation:', error);
+            }
+        }
         router.push('/egitimler');
     };
 
     const handleWatchRelated = (videoId: number) => {
         router.push(`/egitimler/izle/${videoId}`);
+    };
+
+    const getEgitimDurumu = (egitim: any) => {
+        if (!egitim) return { label: 'Yeni', value: 'yeni', severity: 'info' };
+
+        // Backend'den gelen tamamlanma durumunu kontrol et
+        const tamamlandiMi = egitim.tamamlandiMi || false;
+        const izlemeYuzdesi = egitim.izlemeYuzdesi || 0;
+        const izlenmeMinimum = egitim.izlenmeMinimum || 80;
+
+        // DB'de tamamlandı olarak işaretlenmişse veya minimum orana ulaşmışsa
+        if (tamamlandiMi || izlemeYuzdesi >= izlenmeMinimum) {
+            return { label: 'Tamamlandı', value: 'tamamlandi', severity: 'success' };
+        } else if (izlemeYuzdesi > 0) {
+            return { label: 'Devam Ediyor', value: 'devam', severity: 'warning' };
+        } else {
+            return { label: 'Yeni', value: 'yeni', severity: 'info' };
+        }
     };
 
     if (loading) {
@@ -237,6 +318,7 @@ const VideoEgitimClient = ({ id }: Props) => {
 
             {/* Main Video Player */}
             <VideoPlayer
+                ref={videoPlayerRef}
                 egitim={egitim}
                 personelId={personelId}
                 onComplete={handleVideoComplete}
@@ -245,25 +327,47 @@ const VideoEgitimClient = ({ id }: Props) => {
                 }}
             />
 
+            {/* Status Badge - Positioned at bottom right */}
+            {egitim && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: '20px',
+                    right: '20px',
+                    zIndex: 1000
+                }}>
+                    <Badge
+                        value={getEgitimDurumu(egitim).label}
+                        severity={getEgitimDurumu(egitim).severity as any}
+                        size="large"
+                        style={{
+                            fontSize: '0.875rem',
+                            padding: '0.75rem 1rem',
+                            borderRadius: '6px',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                        }}
+                    />
+                </div>
+            )}
+
             {/* Completion Dialog */}
             <Dialog
                 visible={completionDialog}
                 onHide={() => setCompletionDialog(false)}
-                header="🎉 Tebrikler!"
+                header="🎉 Eğitim Tamamlandı!"
                 modal
                 style={{ width: '500px' }}
                 footer={
                     <div className="flex justify-content-between w-full">
-                        <Button 
-                            label="Eğitimlere Dön" 
-                            icon="pi pi-arrow-left" 
+                        <Button
+                            label="Videoyu Devam Ettir"
+                            icon="pi pi-play"
                             className="p-button-secondary"
-                            onClick={handleGoToEgitimler}
+                            onClick={handleContinueWatching}
                         />
-                        <Button 
-                            label="Sertifika Oluştur" 
-                            icon="pi pi-verified" 
-                            onClick={handleCreateCertificate}
+                        <Button
+                            label="Sertifika Oluştur ve Çık"
+                            icon="pi pi-verified"
+                            onClick={handleCreateCertificateAndExit}
                         />
                     </div>
                 }
@@ -272,11 +376,14 @@ const VideoEgitimClient = ({ id }: Props) => {
                     <div style={{ fontSize: '4rem', color: '#22c55e', marginBottom: '1rem' }}>
                         <i className="pi pi-check-circle"></i>
                     </div>
-                    <h3>Video Eğitimi Tamamladınız!</h3>
+                    <h3>Minimum İzlenme Oranına Ulaştınız!</h3>
                     <p>
-                        &quot;<strong>{egitim.baslik}</strong>&quot; eğitimini başarıyla tamamladınız. 
-                        Artık sertifikanızı oluşturabilirsiniz.
+                        &quot;<strong>{egitim.baslik}</strong>&quot; eğitimini gerekli oranda izlediğiniz için tamamlandı olarak işaretlendi.
                     </p>
+                    <div className="mt-3 p-3 border-round surface-100">
+                        <p className="mb-2"><strong>İzlenme Oranı:</strong> {egitim?.izlenmeMinimum || 80}% (tamamlandı)</p>
+                        <p className="mb-0">Videoyu sonuna kadar izlemeye devam edebilir veya sertifikanızı oluşturup çıkabilirsiniz.</p>
+                    </div>
                 </div>
             </Dialog>
 

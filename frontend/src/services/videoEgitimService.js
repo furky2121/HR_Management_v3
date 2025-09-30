@@ -343,12 +343,18 @@ class VideoEgitimService {
 
     // Video eğitim istatistikleri
     async getVideoEgitimIstatistikleri() {
-        return this.getIstatistikler();
+        return ApiService.get('/VideoEgitim/rapor-istatistikleri');
     }
 
     // Personel video eğitim özeti
     async getPersonelVideoEgitimOzeti() {
-        return this.getIstatistikler();
+        return ApiService.get('/VideoEgitim/personel-egitim-ozeti');
+    }
+
+    // Departman raporu
+    async getDepartmanRaporu(year = null) {
+        const url = year ? `/VideoEgitim/departman-raporu?year=${year}` : '/VideoEgitim/departman-raporu';
+        return ApiService.get(url);
     }
 
     // Bulk operations
@@ -417,6 +423,12 @@ class VideoEgitimService {
         }
         
         return analytics;
+    }
+
+    // Aylık video eğitim trendi
+    async getAylikEgitimTrendi(year = null) {
+        const url = year ? `/VideoEgitim/aylik-egitim-trendi?year=${year}` : '/VideoEgitim/aylik-egitim-trendi';
+        return ApiService.get(url);
     }
 }
 

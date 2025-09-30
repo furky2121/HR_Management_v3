@@ -553,7 +553,7 @@ const Pozisyonlar = () => {
                             onValueChange={(e) => onNumberChange(e, 'minMaas')}
                             mode="currency"
                             currency="TRY"
-                            locale="tr-TR"
+                            locale="tr"
                             currencyDisplay="code"
                             placeholder="0,00"
                         />
@@ -566,7 +566,7 @@ const Pozisyonlar = () => {
                             onValueChange={(e) => onNumberChange(e, 'maxMaas')}
                             mode="currency"
                             currency="TRY"
-                            locale="tr-TR"
+                            locale="tr"
                             currencyDisplay="code"
                             placeholder="0,00"
                         />

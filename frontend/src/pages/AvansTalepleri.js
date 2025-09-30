@@ -321,17 +321,21 @@ const AvansTalepleri = () => {
                         <div className="flex justify-content-between align-items-center">
                             <h6>Avans Limit Bilginiz (Bu Ay)</h6>
                             <div className="flex align-items-center gap-2">
-                                <Chip 
-                                    label={`Limit: ${avansService.formatPara(avansLimiti.maxLimit)}`} 
-                                    className="p-mr-2" 
+                                <Chip
+                                    label={`Limit: ${avansService.formatPara(avansLimiti.maxLimit)}`}
+                                    className="p-mr-2"
                                 />
-                                <Chip 
-                                    label={`Kullanılan: ${avansService.formatPara(avansLimiti.kullanilanAvans)}`} 
-                                    className="p-mr-2 p-chip-warning" 
+                                <Chip
+                                    label={`Kullanılan: ${avansService.formatPara(avansLimiti.kullanilanAvans)}`}
+                                    className="p-mr-2 p-chip-success"
                                 />
-                                <Chip 
-                                    label={`Kalan: ${avansService.formatPara(avansLimiti.kalanLimit)}`} 
-                                    className="p-chip-success" 
+                                <Chip
+                                    label={`Onay Bekleyen: ${avansService.formatPara(avansLimiti.onayBekleyen)}`}
+                                    className="p-mr-2 p-chip-warning"
+                                />
+                                <Chip
+                                    label={`Kalan: ${avansService.formatPara(avansLimiti.kalanLimit)}`}
+                                    className="p-chip-info"
                                 />
                             </div>
                         </div>
@@ -431,7 +435,7 @@ const AvansTalepleri = () => {
                             onValueChange={(e) => onInputChange(e, 'talepTutari')}
                             mode="currency"
                             currency="TRY"
-                            locale="tr-TR"
+                            locale="tr"
                             className={submitted && !avansTalebi.talepTutari ? 'p-invalid' : ''}
                         />
                         {submitted && !avansTalebi.talepTutari && (
