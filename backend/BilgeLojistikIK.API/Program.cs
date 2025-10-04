@@ -50,8 +50,18 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Add Entity Framework
-var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
-    ?? builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+// Parse DATABASE_URL for Render.com deployment (PostgreSQL URI format)
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+if (!string.IsNullOrEmpty(databaseUrl))
+{
+    var databaseUri = new Uri(databaseUrl);
+    var userInfo = databaseUri.UserInfo.Split(':');
+
+    connectionString = $"Host={databaseUri.Host};Port={databaseUri.Port};Database={databaseUri.LocalPath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+}
+
 builder.Services.AddDbContext<BilgeLojistikIKContext>(options =>
     options.UseNpgsql(connectionString,
         o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
