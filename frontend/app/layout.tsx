@@ -46,7 +46,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                 <link id="theme-css" href={`/themes/lara-light-blue/theme.css`} rel="stylesheet"></link>
             </head>
             <body>
-                <PrimeReactProvider>
+                <PrimeReactProvider value={{ locale: 'tr' }}>
                     <LayoutProvider>
                         <Suspense fallback={<div>Loading...</div>}>
                             <TitleManager />
