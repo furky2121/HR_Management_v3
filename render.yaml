@@ -2,11 +2,10 @@ services:
   # Web service for the .NET API
   - type: web
     name: bilgelojistik-api
-    runtime: dotnet
+    runtime: docker
     plan: free
-    buildCommand: cd backend/BilgeLojistikIK.API && dotnet restore && dotnet build -c Release
-    startCommand: cd backend/BilgeLojistikIK.API && dotnet run -c Release --no-launch-profile --urls http://0.0.0.0:$PORT
-    healthCheckPath: /health
+    dockerfilePath: ./backend/BilgeLojistikIK.API/Dockerfile
+    dockerContext: .
     autoDeploy: true
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
