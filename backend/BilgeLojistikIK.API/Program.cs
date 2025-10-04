@@ -182,15 +182,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Health check endpoint
-app.MapGet("/health", () => Results.Ok(new
-{
-    status = "Healthy",
-    timestamp = DateTime.UtcNow,
-    version = "1.0.0",
-    environment = app.Environment.EnvironmentName
-}));
-
 // Apply migrations automatically in production
 using (var scope = app.Services.CreateScope())
 {
