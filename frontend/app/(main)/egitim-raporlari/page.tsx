@@ -86,7 +86,7 @@ const EgitimRaporlariPage = () => {
             }
 
             // Departman bazlı video eğitimler
-            const departmanEgitim = await videoEgitimService.getDepartmanRaporu(selectedYear);
+            const departmanEgitim = await videoEgitimService.getDepartmanRaporu(selectedYear as any);
             console.log('Departman rapor response:', departmanEgitim);
 
             if (departmanEgitim.success && departmanEgitim.data) {
