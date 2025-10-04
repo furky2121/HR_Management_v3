@@ -9,6 +9,9 @@ import { Badge } from 'primereact/badge';
 import { Skeleton } from 'primereact/skeleton';
 import { Dialog } from 'primereact/dialog';
 import VideoPlayer from '@/src/components/VideoPlayer.js';
+
+// Type assertion for JavaScript component
+const VideoPlayerComponent = VideoPlayer as any;
 import videoEgitimService from '@/src/services/videoEgitimService';
 
 interface Props {
@@ -317,7 +320,7 @@ const VideoEgitimClient = ({ id }: Props) => {
             </div>
 
             {/* Main Video Player */}
-            <VideoPlayer
+            <VideoPlayerComponent
                 ref={videoPlayerRef}
                 egitim={egitim}
                 personelId={personelId}
