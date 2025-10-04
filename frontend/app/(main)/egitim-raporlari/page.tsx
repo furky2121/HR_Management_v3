@@ -97,7 +97,7 @@ const EgitimRaporlariPage = () => {
             }
 
             // Aylık video eğitim trendi
-            const aylikTrend = await videoEgitimService.getAylikEgitimTrendi(selectedYear);
+            const aylikTrend = await videoEgitimService.getAylikEgitimTrendi(selectedYear as any);
             console.log('Aylık trend response:', aylikTrend);
 
             if (aylikTrend.success && aylikTrend.data) {
